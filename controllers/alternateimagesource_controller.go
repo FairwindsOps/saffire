@@ -60,7 +60,6 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 
 	alternateImageSource.Status.Activated = false
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
-	// TODO: Right now this rebuilds the target list every time. Be smarter about that
 	alternateImageSource.Status.Targets = []kuiperv1alpha1.Target{}
 
 	for _, replacement := range alternateImageSource.Spec.ImageSourceReplacements {
@@ -69,7 +68,6 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 			case "deployment":
 				var targetDeployments appsv1.DeploymentList
 
-				// TODO: apply label selector
 				if err := r.List(ctx, &targetDeployments, client.InNamespace(req.Namespace)); err != nil {
 					log.Error(err, "unable to list target deployments")
 				}
