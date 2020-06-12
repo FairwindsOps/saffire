@@ -83,6 +83,10 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 						alternateImageSource.Status.TargetsAvailable = append(alternateImageSource.Status.TargetsAvailable, target)
 						if r.targetNeedsActivation(target, req.Namespace) {
 							alternateImageSource.Status.TargetsActivated = append(alternateImageSource.Status.TargetsActivated, target)
+							err := r.updateTarget(target, req.Namespace, replacement.InitialRepository, replacement.ReplacementRepository)
+							if err != nil {
+								log.Error(err, "unable to update target")
+							}
 						}
 					}
 				}
@@ -127,13 +131,11 @@ func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o handler.Map
 	if !ok {
 		r.Log.Error(errors.Errorf("expected a Pod but got a %T", o.Object), "failed to get AlternateImageSource for Pod")
 	}
-	log := r.Log.WithValues("Pod", p.Name, "Namespace", p.Namespace)
 
 	pod := &corev1.Pod{}
 	err := r.Get(ctx, client.ObjectKey{Name: p.Name, Namespace: p.Namespace}, pod)
 	if err != nil {
-		log.Error(err, "could not get pod")
-		return result
+		return nil
 	}
 
 	if r.podHasImagePullErr(pod) {
@@ -239,4 +241,43 @@ func (r *AlternateImageSourceReconciler) getReplicaSetOwner(originalOwner v1.Own
 	}
 
 	return v1.OwnerReference{}
+}
+
+func (r *AlternateImageSourceReconciler) updateTarget(target kuiperv1alpha1.Target, namespace string, oldImage string, newImage string) error {
+	ctx := context.Background()
+	switch strings.ToLower(target.Type.Kind) {
+	case "deployment":
+		deployment := &appsv1.Deployment{}
+		err := r.Get(ctx, client.ObjectKey{Name: target.Name, Namespace: namespace}, deployment)
+		if err != nil {
+			return err
+		}
+		err = r.updateDeployment(deployment, oldImage, newImage)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Deployment, old string, new string) error {
+	replacedAny := false
+	for idx, container := range deployment.Spec.Template.Spec.Containers {
+		existingImage := container.Image
+		if strings.Contains(existingImage, old) {
+			newImage := strings.Replace(existingImage, old, new, 1)
+			deployment.Spec.Template.Spec.Containers[idx].Image = newImage
+			replacedAny = true
+		}
+	}
+
+	if replacedAny {
+		ctx := context.Background()
+		err := r.Update(ctx, deployment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
