@@ -1,0 +1,165 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: alternateimagesources.kuiper.fairwinds.com
+spec:
+  group: kuiper.fairwinds.com
+  names:
+    kind: AlternateImageSource
+    listKind: AlternateImageSourceList
+    plural: alternateimagesources
+    singular: alternateimagesource
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: AlternateImageSource is the Schema for the alternateimagesources
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: AlternateImageSourceSpec defines the desired state of AlternateImageSource
+          properties:
+            imageSourceReplacements:
+              items:
+                description: ImageSourceReplacement is a single replacement
+                properties:
+                  initialRepository:
+                    description: 'InitialRepository is the repository that you deploy
+                      with. For example: quay.io/fairwinds/polaris'
+                    type: string
+                  replacementRepositories:
+                    description: ReplacementRepositories is the list of potential
+                      1:1 replacements
+                    items:
+                      type: string
+                    type: array
+                  targets:
+                    description: Targets is a list of objects you want to target for
+                      replacement of the image in the event of an ImagePullError
+                    items:
+                      description: Target is a target for image replacement
+                      properties:
+                        selector:
+                          description: A label selector is a label query over a set
+                            of resources. The result of matchLabels and matchExpressions
+                            are ANDed. An empty label selector matches all objects.
+                            A null label selector matches no objects.
+                          properties:
+                            matchExpressions:
+                              description: matchExpressions is a list of label selector
+                                requirements. The requirements are ANDed.
+                              items:
+                                description: A label selector requirement is a selector
+                                  that contains values, a key, and an operator that
+                                  relates the key and values.
+                                properties:
+                                  key:
+                                    description: key is the label key that the selector
+                                      applies to.
+                                    type: string
+                                  operator:
+                                    description: operator represents a key's relationship
+                                      to a set of values. Valid operators are In,
+                                      NotIn, Exists and DoesNotExist.
+                                    type: string
+                                  values:
+                                    description: values is an array of string values.
+                                      If the operator is In or NotIn, the values array
+                                      must be non-empty. If the operator is Exists
+                                      or DoesNotExist, the values array must be empty.
+                                      This array is replaced during a strategic merge
+                                      patch.
+                                    items:
+                                      type: string
+                                    type: array
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              description: matchLabels is a map of {key,value} pairs.
+                                A single {key,value} in the matchLabels map is equivalent
+                                to an element of matchExpressions, whose key field
+                                is "key", the operator is "In", and the values array
+                                contains only "value". The requirements are ANDed.
+                              type: object
+                          type: object
+                        type:
+                          description: GroupKind specifies a Group and a Kind, but
+                            does not force a version.  This is useful for identifying
+                            concepts during lookup stages without having partially
+                            valid types
+                          properties:
+                            group:
+                              type: string
+                            kind:
+                              type: string
+                          required:
+                          - group
+                          - kind
+                          type: object
+                      required:
+                      - selector
+                      - type
+                      type: object
+                    type: array
+                required:
+                - initialRepository
+                - replacementRepositories
+                - targets
+                type: object
+              type: array
+          required:
+          - imageSourceReplacements
+          type: object
+        status:
+          description: AlternateImageSourceStatus defines the observed state of AlternateImageSource
+          properties:
+            activated:
+              description: Activated status inidicates if a replacement has been used
+              type: boolean
+            observedGeneration:
+              format: int64
+              type: integer
+            targets:
+              description: 'Targets is a list of objects that the LabelSelector has
+                matched TODO: Find the right type'
+              items:
+                type: string
+              type: array
+          required:
+          - observedGeneration
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

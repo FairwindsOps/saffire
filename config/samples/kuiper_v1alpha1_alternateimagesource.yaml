@@ -1,0 +1,16 @@
+apiVersion: kuiper.fairwinds.com/v1alpha1
+kind: AlternateImageSource
+metadata:
+  name: alternateimagesource-sample
+spec:
+  imageSourceReplacements:
+    - initialRepository: quay.io/flannel
+      replacementRepositories:
+        - docker.io/flannel
+      targets:
+        - type:
+            group: apps
+            kind: deployment
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: foo

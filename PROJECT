@@ -1,0 +1,7 @@
+domain: fairwinds.com
+repo: github.com/fairwindsops/kuiper
+resources:
+- group: kuiper
+  kind: AlternateImageSource
+  version: v1alpha1
+version: "2"
