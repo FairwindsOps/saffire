@@ -61,7 +61,7 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	alternateImageSource.Status.Activated = false
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
 	// TODO: Right now this rebuilds the target list every time. Be smarter about that
-	alternateImageSource.Status.Targets = []string{}
+	alternateImageSource.Status.Targets = []kuiperv1alpha1.Target{}
 
 	for _, replacement := range alternateImageSource.Spec.ImageSourceReplacements {
 		for _, target := range replacement.Targets {
@@ -79,8 +79,8 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 				for _, deployment := range targetDeployments.Items {
 					log.Info(fmt.Sprintf("found deployment %s", deployment.ObjectMeta.Name))
 					if deployment.ObjectMeta.Name == target.Name {
-						if !stringInSlice(deployment.ObjectMeta.Name, alternateImageSource.Status.Targets) {
-							alternateImageSource.Status.Targets = append(alternateImageSource.Status.Targets, deployment.ObjectMeta.Name)
+						if !targetInList(target, alternateImageSource.Status.Targets) {
+							alternateImageSource.Status.Targets = append(alternateImageSource.Status.Targets, target)
 						}
 					}
 				}
@@ -137,9 +137,9 @@ func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) erro
 		Complete(r)
 }
 
-func stringInSlice(a string, list []string) bool {
+func targetInList(target kuiperv1alpha1.Target, list []kuiperv1alpha1.Target) bool {
 	for _, b := range list {
-		if b == a {
+		if b == target {
 			return true
 		}
 	}

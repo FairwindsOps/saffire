@@ -100,7 +100,27 @@ spec:
               description: 'Targets is a list of objects that the LabelSelector has
                 matched TODO: Find the right type'
               items:
-                type: string
+                description: Target is a target for image replacement
+                properties:
+                  name:
+                    type: string
+                  type:
+                    description: GroupKind specifies a Group and a Kind, but does
+                      not force a version.  This is useful for identifying concepts
+                      during lookup stages without having partially valid types
+                    properties:
+                      group:
+                        type: string
+                      kind:
+                        type: string
+                    required:
+                    - group
+                    - kind
+                    type: object
+                required:
+                - name
+                - type
+                type: object
               type: array
           required:
           - observedGeneration

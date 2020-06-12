@@ -52,7 +52,7 @@ type AlternateImageSourceStatus struct {
 	Activated bool `json:"activated,omitempty"`
 	// Targets is a list of objects that the LabelSelector has matched
 	// TODO: Find the right type
-	Targets []string `json:"targets,omitempty"`
+	Targets []Target `json:"targets,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -76,14 +76,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Right now, the webhook is annoying. Don't load it
-	// if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-	// 	if err = (&kuiperv1alpha1.AlternateImageSource{}).SetupWebhookWithManager(mgr); err != nil {
-	// 		setupLog.Error(err, "unable to create webhook", "webhook", "Captain")
-	// 		os.Exit(1)
-	// 	}
-	// }
-
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting controller")
