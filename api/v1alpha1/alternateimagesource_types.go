@@ -32,8 +32,8 @@ type ImageSourceReplacement struct {
 	// For example: quay.io/fairwinds/polaris
 	InitialRepository string `json:"initialRepository"`
 
-	// ReplacementRepositories is the list of potential 1:1 replacements
-	ReplacementRepositories []string `json:"replacementRepositories"`
+	// ReplacementRepository is the 1:1 replacement for the InitialRepository
+	ReplacementRepository string `json:"replacementRepository"`
 
 	// Targets is a list of objects you want to target for
 	// replacement of the image in the event of an ImagePullError
@@ -48,11 +48,10 @@ type AlternateImageSourceSpec struct {
 // AlternateImageSourceStatus defines the observed state of AlternateImageSource
 type AlternateImageSourceStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration"`
-	// Activated status inidicates if a replacement has been used
-	Activated bool `json:"activated,omitempty"`
-	// Targets is a list of objects that the LabelSelector has matched
-	// TODO: Find the right type
-	Targets []Target `json:"targets,omitempty"`
+	// TargetsActivated is a list of targets that have been switched over
+	TargetsActivated []Target `json:"targetsActivated,omitempty"`
+	// TargetsAvailable is a list of objects that are available to be switched
+	TargetsAvailable []Target `json:"targetsAvailable,omitempty"`
 }
 
 // +kubebuilder:object:root=true

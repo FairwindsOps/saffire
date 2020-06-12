@@ -4,9 +4,8 @@ metadata:
   name: alternateimagesource-sample
 spec:
   imageSourceReplacements:
-    - initialRepository: quay.io/flannel
-      replacementRepositories:
-        - docker.io/flannel
+    - initialRepository: ehazlett/docker-demo
+      replacementRepository: quay.io/fairwinds/docker-demo
       targets:
         - type:
             group: apps

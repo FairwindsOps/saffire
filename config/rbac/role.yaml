@@ -12,8 +12,17 @@ rules:
   - deployments
   verbs:
   - get
+  - list
   - patch
   - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
   - watch
 - apiGroups:
   - kuiper.fairwinds.com
