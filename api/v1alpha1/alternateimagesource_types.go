@@ -22,8 +22,8 @@ import (
 
 // Target is a target for image replacement
 type Target struct {
-	Selector metav1.LabelSelector `json:"selector"`
-	Type     metav1.GroupKind     `json:"type"`
+	Name string           `json:"name"`
+	Type metav1.GroupKind `json:"type"`
 }
 
 // ImageSourceReplacement is a single replacement

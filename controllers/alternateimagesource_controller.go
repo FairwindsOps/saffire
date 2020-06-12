@@ -23,10 +23,13 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	kuiperv1alpha1 "github.com/fairwindsops/kuiper/api/v1alpha1"
 )
@@ -40,6 +43,7 @@ type AlternateImageSourceReconciler struct {
 
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;update;patch;watch
 
 // Reconcile loads and reconciles the AlternateImageSource
 func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -53,14 +57,11 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 		log.Error(err, "unable to fetch AlternateImageSource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	if alternateImageSource.Status.ObservedGeneration == alternateImageSource.ObjectMeta.Generation {
-		// Status is updated, metadata.generation of
-		// CR is not incremented, no need to reconcile
-		return ctrl.Result{}, nil
-	}
 
 	alternateImageSource.Status.Activated = false
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
+	// TODO: Right now this rebuilds the target list every time. Be smarter about that
+	alternateImageSource.Status.Targets = []string{}
 
 	for _, replacement := range alternateImageSource.Spec.ImageSourceReplacements {
 		for _, target := range replacement.Targets {
@@ -69,15 +70,19 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 				var targetDeployments appsv1.DeploymentList
 
 				// TODO: apply label selector
-				if err := r.List(ctx, &targetDeployments, client.InNamespace("")); err != nil {
+				if err := r.List(ctx, &targetDeployments, client.InNamespace(req.Namespace)); err != nil {
 					log.Error(err, "unable to list target deployments")
 				}
 				if len(targetDeployments.Items) < 1 {
-					log.Info("no deployments found matching label selector on ", req.Name)
+					continue
 				}
 				for _, deployment := range targetDeployments.Items {
 					log.Info(fmt.Sprintf("found deployment %s", deployment.ObjectMeta.Name))
-					alternateImageSource.Status.Targets = append(alternateImageSource.Status.Targets, deployment.ObjectMeta.Name)
+					if deployment.ObjectMeta.Name == target.Name {
+						if !stringInSlice(deployment.ObjectMeta.Name, alternateImageSource.Status.Targets) {
+							alternateImageSource.Status.Targets = append(alternateImageSource.Status.Targets, deployment.ObjectMeta.Name)
+						}
+					}
 				}
 			}
 		}
@@ -91,8 +96,52 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	return ctrl.Result{}, nil
 }
 
+// DeploymentToAlternateImageSource is a handler.ToRequestsFunc to be used to enqueue requests to reconcile deployments
+// When a deployment is updated, this will request a reconciliation all of the AlternateImageSources in the namespace
+// of the deployment that was updated.
+func (r *AlternateImageSourceReconciler) DeploymentToAlternateImageSource(o handler.MapObject) []ctrl.Request {
+	result := []ctrl.Request{}
+	ctx := context.Background()
+
+	d, ok := o.Object.(*appsv1.Deployment)
+	if !ok {
+		r.Log.Error(errors.Errorf("expected a Deployment but got a %T", o.Object), "failed to get AlternateImageSource for Deployment")
+	}
+	log := r.Log.WithValues("Deployment", d.Name, "Namespace", d.Namespace)
+
+	log.V(3).Info("reconciling", "deployment")
+
+	alternateImageSourcesInNamespace := kuiperv1alpha1.AlternateImageSourceList{}
+	err := r.List(ctx, &alternateImageSourcesInNamespace, client.InNamespace(d.Namespace))
+	if err != nil {
+		log.Error(err, "error getting AlternateImageSources in namespace")
+		return nil
+	}
+
+	for _, ais := range alternateImageSourcesInNamespace.Items {
+		name := client.ObjectKey{Namespace: ais.Namespace, Name: ais.Name}
+		result = append(result, ctrl.Request{NamespacedName: name})
+	}
+
+	return result
+}
+
+// SetupWithManager sets up the reconciler
 func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kuiperv1alpha1.AlternateImageSource{}).
+		Watches(
+			&source.Kind{Type: &appsv1.Deployment{}},
+			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.DeploymentToAlternateImageSource)},
+		).
 		Complete(r)
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

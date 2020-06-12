@@ -40,6 +40,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = kuiperv1alpha1.AddToScheme(scheme)
+
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -74,11 +75,20 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AlternateImageSource")
 		os.Exit(1)
 	}
+
+	// Right now, the webhook is annoying. Don't load it
+	// if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+	// 	if err = (&kuiperv1alpha1.AlternateImageSource{}).SetupWebhookWithManager(mgr); err != nil {
+	// 		setupLog.Error(err, "unable to create webhook", "webhook", "Captain")
+	// 		os.Exit(1)
+	// 	}
+	// }
+
 	// +kubebuilder:scaffold:builder
 
-	setupLog.Info("starting manager")
+	setupLog.Info("starting controller")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+		setupLog.Error(err, "problem running controller")
 		os.Exit(1)
 	}
 }

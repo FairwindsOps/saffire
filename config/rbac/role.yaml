@@ -7,6 +7,15 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+  - update
+  - watch
+- apiGroups:
   - kuiper.fairwinds.com
   resources:
   - alternateimagesources

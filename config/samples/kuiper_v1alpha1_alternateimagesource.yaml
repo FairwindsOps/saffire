@@ -11,6 +11,8 @@ spec:
         - type:
             group: apps
             kind: deployment
-          selector:
-            matchLabels:
-              app.kubernetes.io/name: foo
+          name: demo3-basic-demo
+        - type:
+            group: apps
+            kind: deployment
+          name: demo2-basic-demo

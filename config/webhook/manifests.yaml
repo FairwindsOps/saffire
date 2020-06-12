@@ -1,0 +1,53 @@
+
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-kuiper-fairwinds-com-v1alpha1-alternateimagesource
+  failurePolicy: Fail
+  name: malternateimagesource.kb.io
+  rules:
+  - apiGroups:
+    - kuiper.fairwinds.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - alternateimagesources
+
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-kuiper-fairwinds-com-v1alpha1-alternateimagesource
+  failurePolicy: Fail
+  name: valternateimagesource.kb.io
+  rules:
+  - apiGroups:
+    - kuiper.fairwinds.com
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - alternateimagesources
