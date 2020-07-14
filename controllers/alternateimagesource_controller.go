@@ -55,16 +55,15 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	var alternateImageSource kuiperv1alpha1.AlternateImageSource
 
 	if err := r.Get(ctx, req.NamespacedName, &alternateImageSource); err != nil {
-
 		log.Error(err, "unable to fetch AlternateImageSource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
+	alternateImageSource.Status.LastUpdated = v1.Now()
 
 	// TODO: We set the lists to empty and rebuild each reconciliation. There's probably more efficient ways to do this.
 	alternateImageSource.Status.TargetsAvailable = []kuiperv1alpha1.Target{}
-	alternateImageSource.Status.TargetsActivated = []kuiperv1alpha1.Target{}
 
 	var deploymentsInNamespace appsv1.DeploymentList
 	if err := r.List(ctx, &deploymentsInNamespace, client.InNamespace(req.Namespace)); err != nil {
@@ -82,8 +81,7 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 						log.Info(fmt.Sprintf("found targeted deployment %s", deployment.ObjectMeta.Name))
 						alternateImageSource.Status.TargetsAvailable = append(alternateImageSource.Status.TargetsAvailable, target)
 						if r.targetNeedsActivation(target, req.Namespace) {
-							alternateImageSource.Status.TargetsActivated = append(alternateImageSource.Status.TargetsActivated, target)
-							err := r.updateTarget(target, req.Namespace, replacement.InitialRepository, replacement.ReplacementRepository)
+							err := r.switchTarget(target, req.Namespace, replacement)
 							if err != nil {
 								log.Error(err, "unable to update target")
 							}
@@ -243,7 +241,7 @@ func (r *AlternateImageSourceReconciler) getReplicaSetOwner(originalOwner v1.Own
 	return v1.OwnerReference{}
 }
 
-func (r *AlternateImageSourceReconciler) updateTarget(target kuiperv1alpha1.Target, namespace string, oldImage string, newImage string) error {
+func (r *AlternateImageSourceReconciler) switchTarget(target kuiperv1alpha1.Target, namespace string, replacement kuiperv1alpha1.ImageSourceReplacement) error {
 	ctx := context.Background()
 	switch strings.ToLower(target.Type.Kind) {
 	case "deployment":
@@ -252,12 +250,35 @@ func (r *AlternateImageSourceReconciler) updateTarget(target kuiperv1alpha1.Targ
 		if err != nil {
 			return err
 		}
-		err = r.updateDeployment(deployment, oldImage, newImage)
-		if err != nil {
-			return err
+
+		for _, container := range deployment.Spec.Template.Spec.Containers {
+			oldRepo, _, err := parseImageString(container.Image)
+			if err != nil {
+				r.Log.Error(err, fmt.Sprintf("could not parse conatainer %s", container.Name))
+				continue
+			}
+			if stringInSlice(oldRepo, replacement.EquivalentRepositories) {
+				for _, repository := range replacement.EquivalentRepositories {
+					if !strings.Contains(container.Image, repository) {
+						err = r.updateDeployment(deployment, oldRepo, repository)
+						if err != nil {
+							r.Log.Error(err, "")
+							continue
+						}
+					}
+				}
+			}
 		}
 	}
 	return nil
+}
+
+func parseImageString(image string) (string, string, error) {
+	parsed := strings.Split(image, ":")
+	if len(parsed) != 2 {
+		return "", "", fmt.Errorf("could not parse image string: %s", image)
+	}
+	return parsed[0], parsed[1], nil
 }
 
 func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Deployment, old string, new string) error {
@@ -278,6 +299,14 @@ func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Dep
 			return err
 		}
 	}
-
 	return nil
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if a == b {
+			return true
+		}
+	}
+	return false
 }

@@ -28,12 +28,9 @@ type Target struct {
 
 // ImageSourceReplacement is a single replacement
 type ImageSourceReplacement struct {
-	// InitialRepository is the repository that you deploy with.
-	// For example: quay.io/fairwinds/polaris
-	InitialRepository string `json:"initialRepository"`
-
-	// ReplacementRepository is the 1:1 replacement for the InitialRepository
-	ReplacementRepository string `json:"replacementRepository"`
+	// EquivalentRepositories is a list of possible replacement repositories
+	// they should each have the same set of tags available
+	EquivalentRepositories []string `json:"equivalentRepositories"`
 
 	// Targets is a list of objects you want to target for
 	// replacement of the image in the event of an ImagePullError
@@ -48,10 +45,10 @@ type AlternateImageSourceSpec struct {
 // AlternateImageSourceStatus defines the observed state of AlternateImageSource
 type AlternateImageSourceStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration"`
-	// TargetsActivated is a list of targets that have been switched over
-	TargetsActivated []Target `json:"targetsActivated,omitempty"`
+
 	// TargetsAvailable is a list of objects that are available to be switched
-	TargetsAvailable []Target `json:"targetsAvailable,omitempty"`
+	TargetsAvailable []Target    `json:"targetsAvailable,omitempty"`
+	LastUpdated      metav1.Time `json:"lastUpdated"`
 }
 
 // +kubebuilder:object:root=true

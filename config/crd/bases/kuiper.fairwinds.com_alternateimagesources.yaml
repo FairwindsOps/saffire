@@ -41,14 +41,12 @@ spec:
               items:
                 description: ImageSourceReplacement is a single replacement
                 properties:
-                  initialRepository:
-                    description: 'InitialRepository is the repository that you deploy
-                      with. For example: quay.io/fairwinds/polaris'
-                    type: string
-                  replacementRepository:
-                    description: ReplacementRepository is the 1:1 replacement for
-                      the InitialRepository
-                    type: string
+                  equivalentRepositories:
+                    description: EquivalentRepositories is a list of possible replacement
+                      repositories they should each have the same set of tags available
+                    items:
+                      type: string
+                    type: array
                   targets:
                     description: Targets is a list of objects you want to target for
                       replacement of the image in the event of an ImagePullError
@@ -77,8 +75,7 @@ spec:
                       type: object
                     type: array
                 required:
-                - initialRepository
-                - replacementRepository
+                - equivalentRepositories
                 - targets
                 type: object
               type: array
@@ -88,35 +85,12 @@ spec:
         status:
           description: AlternateImageSourceStatus defines the observed state of AlternateImageSource
           properties:
+            lastUpdated:
+              format: date-time
+              type: string
             observedGeneration:
               format: int64
               type: integer
-            targetsActivated:
-              description: TargetsActivated is a list of targets that have been switched
-                over
-              items:
-                description: Target is a target for image replacement
-                properties:
-                  name:
-                    type: string
-                  type:
-                    description: GroupKind specifies a Group and a Kind, but does
-                      not force a version.  This is useful for identifying concepts
-                      during lookup stages without having partially valid types
-                    properties:
-                      group:
-                        type: string
-                      kind:
-                        type: string
-                    required:
-                    - group
-                    - kind
-                    type: object
-                required:
-                - name
-                - type
-                type: object
-              type: array
             targetsAvailable:
               description: TargetsAvailable is a list of objects that are available
                 to be switched
@@ -144,6 +118,7 @@ spec:
                 type: object
               type: array
           required:
+          - lastUpdated
           - observedGeneration
           type: object
       type: object
