@@ -18,12 +18,20 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // Target is a target for image replacement
 type Target struct {
 	Name string           `json:"name"`
 	Type metav1.GroupKind `json:"type"`
+	// Container is the container that matches our list
+	Container string `json:"container,omitempty"`
+	// CurrentRepository is the currently selected repository from the list
+	CurrentRepository string `json:"currentRepository,omitempty"`
+	// SwitchStatuses is a list of switch events
+	SwitchStatuses []SwitchStatus `json:"switches,omitempty"`
+	UID            types.UID      `json:"uid,omitempty"`
 }
 
 // ImageSourceReplacement is a single replacement
@@ -42,13 +50,19 @@ type AlternateImageSourceSpec struct {
 	ImageSourceReplacements []ImageSourceReplacement `json:"imageSourceReplacements"`
 }
 
+// SwitchStatus is a switch event
+type SwitchStatus struct {
+	Time     metav1.Time `json:"time"`
+	OldImage string      `json:"oldImage"`
+	NewImage string      `json:"newImage"`
+}
+
 // AlternateImageSourceStatus defines the observed state of AlternateImageSource
 type AlternateImageSourceStatus struct {
+	// ObservedGeneration is the last observed generation of the object
 	ObservedGeneration int64 `json:"observedGeneration"`
-
 	// TargetsAvailable is a list of objects that are available to be switched
-	TargetsAvailable []Target    `json:"targetsAvailable,omitempty"`
-	LastUpdated      metav1.Time `json:"lastUpdated"`
+	TargetsAvailable []*Target `json:"targetsAvailable,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -53,8 +53,34 @@ spec:
                     items:
                       description: Target is a target for image replacement
                       properties:
+                        container:
+                          description: Container is the container that matches our
+                            list
+                          type: string
+                        currentRepository:
+                          description: CurrentRepository is the currently selected
+                            repository from the list
+                          type: string
                         name:
                           type: string
+                        switches:
+                          description: SwitchStatuses is a list of switch events
+                          items:
+                            description: SwitchStatus is a switch event
+                            properties:
+                              newImage:
+                                type: string
+                              oldImage:
+                                type: string
+                              time:
+                                format: date-time
+                                type: string
+                            required:
+                            - newImage
+                            - oldImage
+                            - time
+                            type: object
+                          type: array
                         type:
                           description: GroupKind specifies a Group and a Kind, but
                             does not force a version.  This is useful for identifying
@@ -69,6 +95,12 @@ spec:
                           - group
                           - kind
                           type: object
+                        uid:
+                          description: UID is a type that holds unique ID values,
+                            including UUIDs.  Because we don't ONLY use UUIDs, this
+                            is an alias to string.  Being a type captures intent and
+                            helps make sure that UIDs and names do not get conflated.
+                          type: string
                       required:
                       - name
                       - type
@@ -85,10 +117,9 @@ spec:
         status:
           description: AlternateImageSourceStatus defines the observed state of AlternateImageSource
           properties:
-            lastUpdated:
-              format: date-time
-              type: string
             observedGeneration:
+              description: ObservedGeneration is the last observed generation of the
+                object
               format: int64
               type: integer
             targetsAvailable:
@@ -97,8 +128,33 @@ spec:
               items:
                 description: Target is a target for image replacement
                 properties:
+                  container:
+                    description: Container is the container that matches our list
+                    type: string
+                  currentRepository:
+                    description: CurrentRepository is the currently selected repository
+                      from the list
+                    type: string
                   name:
                     type: string
+                  switches:
+                    description: SwitchStatuses is a list of switch events
+                    items:
+                      description: SwitchStatus is a switch event
+                      properties:
+                        newImage:
+                          type: string
+                        oldImage:
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - newImage
+                      - oldImage
+                      - time
+                      type: object
+                    type: array
                   type:
                     description: GroupKind specifies a Group and a Kind, but does
                       not force a version.  This is useful for identifying concepts
@@ -112,13 +168,18 @@ spec:
                     - group
                     - kind
                     type: object
+                  uid:
+                    description: UID is a type that holds unique ID values, including
+                      UUIDs.  Because we don't ONLY use UUIDs, this is an alias to
+                      string.  Being a type captures intent and helps make sure that
+                      UIDs and names do not get conflated.
+                    type: string
                 required:
                 - name
                 - type
                 type: object
               type: array
           required:
-          - lastUpdated
           - observedGeneration
           type: object
       type: object
