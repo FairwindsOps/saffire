@@ -54,7 +54,6 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	log := r.Log.WithValues("alternateimagesource", req.NamespacedName)
 
 	var alternateImageSource kuiperv1alpha1.AlternateImageSource
-
 	if err := r.Get(ctx, req.NamespacedName, &alternateImageSource); err != nil {
 		log.Error(err, "unable to fetch AlternateImageSource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -67,6 +66,7 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 		log.Error(err, "unable to list target deployments")
 	}
 
+	// Remove any targets that don't have existing deployments
 	alternateImageSource.Status.TargetsAvailable = pruneTargetDeployments(alternateImageSource.Status.TargetsAvailable, deploymentsInNamespace)
 
 	// Update Targets
@@ -90,7 +90,6 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 								// Look to see if we are already tracking this deployment
 								// if we are, just use that, if not then append it and start
 								// using it
-								// TODO: Prune the list of targets for deleted targets
 								var realTarget *kuiperv1alpha1.Target
 								statusExists := false
 								for _, statusTarget := range alternateImageSource.Status.TargetsAvailable {
