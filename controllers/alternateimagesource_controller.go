@@ -67,6 +67,8 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 		log.Error(err, "unable to list target deployments")
 	}
 
+	alternateImageSource.Status.TargetsAvailable = pruneTargetDeployments(alternateImageSource.Status.TargetsAvailable, deploymentsInNamespace)
+
 	// Update Targets
 	for _, replacement := range alternateImageSource.Spec.ImageSourceReplacements {
 		for _, target := range replacement.Targets {
@@ -135,15 +137,12 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 // of the deployment that was updated.
 func (r *AlternateImageSourceReconciler) DeploymentToAlternateImageSource(o handler.MapObject) []ctrl.Request {
 	result := []ctrl.Request{}
-
 	d, ok := o.Object.(*appsv1.Deployment)
 	if !ok {
 		r.Log.Error(errors.Errorf("expected a Deployment but got a %T", o.Object), "failed to get AlternateImageSource for Deployment")
 	}
 	log := r.Log.WithValues("Deployment", d.Name, "Namespace", d.Namespace)
-
 	log.V(3).Info("reconciling", "deployment")
-
 	result = r.requestAISInNamespace(d.Namespace)
 
 	return result
@@ -242,7 +241,6 @@ func (r *AlternateImageSourceReconciler) targetNeedsActivation(target *kuiperv1a
 			}
 		}
 	}
-
 	return false
 }
 
@@ -338,6 +336,18 @@ func pruneSwitchStatus(statuses []kuiperv1alpha1.SwitchStatus) []kuiperv1alpha1.
 		}
 	}
 	return returnList
+}
+
+func pruneTargetDeployments(targets []*kuiperv1alpha1.Target, deployments appsv1.DeploymentList) []*kuiperv1alpha1.Target {
+	prunedList := []*kuiperv1alpha1.Target{}
+	for _, deployment := range deployments.Items {
+		for _, target := range targets {
+			if target.UID == deployment.UID {
+				prunedList = append(prunedList, target)
+			}
+		}
+	}
+	return prunedList
 }
 
 func parseImageString(image string) (string, string, error) {

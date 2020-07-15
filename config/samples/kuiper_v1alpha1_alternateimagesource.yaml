@@ -6,7 +6,6 @@ spec:
   imageSourceReplacements:
     - equivalentRepositories:
         - quay.io/fairwinds/docker-demo
-        - quay.io/reactiveops/docker-demo
         - ehazlett/docker-demo
       targets:
         - type:
