@@ -18,22 +18,27 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // Target is a target for image replacement
 type Target struct {
 	Name string           `json:"name"`
 	Type metav1.GroupKind `json:"type"`
+	// Container is the container that matches our list
+	Container string `json:"container,omitempty"`
+	// CurrentRepository is the currently selected repository from the list
+	CurrentRepository string `json:"currentRepository,omitempty"`
+	// SwitchStatuses is a list of switch events
+	SwitchStatuses []SwitchStatus `json:"switches,omitempty"`
+	UID            types.UID      `json:"uid,omitempty"`
 }
 
 // ImageSourceReplacement is a single replacement
 type ImageSourceReplacement struct {
-	// InitialRepository is the repository that you deploy with.
-	// For example: quay.io/fairwinds/polaris
-	InitialRepository string `json:"initialRepository"`
-
-	// ReplacementRepository is the 1:1 replacement for the InitialRepository
-	ReplacementRepository string `json:"replacementRepository"`
+	// EquivalentRepositories is a list of possible replacement repositories
+	// they should each have the same set of tags available
+	EquivalentRepositories []string `json:"equivalentRepositories"`
 
 	// Targets is a list of objects you want to target for
 	// replacement of the image in the event of an ImagePullError
@@ -45,13 +50,19 @@ type AlternateImageSourceSpec struct {
 	ImageSourceReplacements []ImageSourceReplacement `json:"imageSourceReplacements"`
 }
 
+// SwitchStatus is a switch event
+type SwitchStatus struct {
+	Time     metav1.Time `json:"time"`
+	OldImage string      `json:"oldImage"`
+	NewImage string      `json:"newImage"`
+}
+
 // AlternateImageSourceStatus defines the observed state of AlternateImageSource
 type AlternateImageSourceStatus struct {
+	// ObservedGeneration is the last observed generation of the object
 	ObservedGeneration int64 `json:"observedGeneration"`
-	// TargetsActivated is a list of targets that have been switched over
-	TargetsActivated []Target `json:"targetsActivated,omitempty"`
 	// TargetsAvailable is a list of objects that are available to be switched
-	TargetsAvailable []Target `json:"targetsAvailable,omitempty"`
+	TargetsAvailable []*Target `json:"targetsAvailable,omitempty"`
 }
 
 // +kubebuilder:object:root=true

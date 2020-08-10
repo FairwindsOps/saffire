@@ -41,22 +41,46 @@ spec:
               items:
                 description: ImageSourceReplacement is a single replacement
                 properties:
-                  initialRepository:
-                    description: 'InitialRepository is the repository that you deploy
-                      with. For example: quay.io/fairwinds/polaris'
-                    type: string
-                  replacementRepository:
-                    description: ReplacementRepository is the 1:1 replacement for
-                      the InitialRepository
-                    type: string
+                  equivalentRepositories:
+                    description: EquivalentRepositories is a list of possible replacement
+                      repositories they should each have the same set of tags available
+                    items:
+                      type: string
+                    type: array
                   targets:
                     description: Targets is a list of objects you want to target for
                       replacement of the image in the event of an ImagePullError
                     items:
                       description: Target is a target for image replacement
                       properties:
+                        container:
+                          description: Container is the container that matches our
+                            list
+                          type: string
+                        currentRepository:
+                          description: CurrentRepository is the currently selected
+                            repository from the list
+                          type: string
                         name:
                           type: string
+                        switches:
+                          description: SwitchStatuses is a list of switch events
+                          items:
+                            description: SwitchStatus is a switch event
+                            properties:
+                              newImage:
+                                type: string
+                              oldImage:
+                                type: string
+                              time:
+                                format: date-time
+                                type: string
+                            required:
+                            - newImage
+                            - oldImage
+                            - time
+                            type: object
+                          type: array
                         type:
                           description: GroupKind specifies a Group and a Kind, but
                             does not force a version.  This is useful for identifying
@@ -71,14 +95,19 @@ spec:
                           - group
                           - kind
                           type: object
+                        uid:
+                          description: UID is a type that holds unique ID values,
+                            including UUIDs.  Because we don't ONLY use UUIDs, this
+                            is an alias to string.  Being a type captures intent and
+                            helps make sure that UIDs and names do not get conflated.
+                          type: string
                       required:
                       - name
                       - type
                       type: object
                     type: array
                 required:
-                - initialRepository
-                - replacementRepository
+                - equivalentRepositories
                 - targets
                 type: object
               type: array
@@ -89,42 +118,43 @@ spec:
           description: AlternateImageSourceStatus defines the observed state of AlternateImageSource
           properties:
             observedGeneration:
+              description: ObservedGeneration is the last observed generation of the
+                object
               format: int64
               type: integer
-            targetsActivated:
-              description: TargetsActivated is a list of targets that have been switched
-                over
-              items:
-                description: Target is a target for image replacement
-                properties:
-                  name:
-                    type: string
-                  type:
-                    description: GroupKind specifies a Group and a Kind, but does
-                      not force a version.  This is useful for identifying concepts
-                      during lookup stages without having partially valid types
-                    properties:
-                      group:
-                        type: string
-                      kind:
-                        type: string
-                    required:
-                    - group
-                    - kind
-                    type: object
-                required:
-                - name
-                - type
-                type: object
-              type: array
             targetsAvailable:
               description: TargetsAvailable is a list of objects that are available
                 to be switched
               items:
                 description: Target is a target for image replacement
                 properties:
+                  container:
+                    description: Container is the container that matches our list
+                    type: string
+                  currentRepository:
+                    description: CurrentRepository is the currently selected repository
+                      from the list
+                    type: string
                   name:
                     type: string
+                  switches:
+                    description: SwitchStatuses is a list of switch events
+                    items:
+                      description: SwitchStatus is a switch event
+                      properties:
+                        newImage:
+                          type: string
+                        oldImage:
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - newImage
+                      - oldImage
+                      - time
+                      type: object
+                    type: array
                   type:
                     description: GroupKind specifies a Group and a Kind, but does
                       not force a version.  This is useful for identifying concepts
@@ -138,6 +168,12 @@ spec:
                     - group
                     - kind
                     type: object
+                  uid:
+                    description: UID is a type that holds unique ID values, including
+                      UUIDs.  Because we don't ONLY use UUIDs, this is an alias to
+                      string.  Being a type captures intent and helps make sure that
+                      UIDs and names do not get conflated.
+                    type: string
                 required:
                 - name
                 - type

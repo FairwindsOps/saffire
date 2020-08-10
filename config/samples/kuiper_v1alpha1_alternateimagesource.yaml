@@ -4,8 +4,9 @@ metadata:
   name: alternateimagesource-sample
 spec:
   imageSourceReplacements:
-    - initialRepository: quay.io/fairwinds/docker-demo
-      replacementRepository: ehazlett/docker-demo
+    - equivalentRepositories:
+        - quay.io/fairwinds/docker-demo
+        - ehazlett/docker-demo
       targets:
         - type:
             group: apps
