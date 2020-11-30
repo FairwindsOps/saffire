@@ -31,7 +31,7 @@ The `imageSourceReplacements` field contains a list. That list has two fields:
 
 #### equivalentRepositories
 
-These are a image repositories (`image` field minus tag) that are equivalent. They are expected to have the same image tags.
+These are image repositories (`image` field minus tag) that are equivalent. They are expected to have the same image tags. Upon a switch being activated, Kuiper will loop through these and use the first one that is not currently utilized.
 
 #### targets
 
