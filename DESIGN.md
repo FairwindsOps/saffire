@@ -33,6 +33,8 @@ The `imageSourceReplacements` field contains a list. That list has two fields:
 
 These are image repositories (`image` field minus tag) that are equivalent. They are expected to have the same image tags. Upon a switch being activated, Kuiper will loop through these and use the first one that is not currently utilized.
 
+Currently there is no plan to implement a "switch back" functionality. If the end-user desires a switch back, they can re-deploy their manifests with the original image.
+
 #### targets
 
 These are a list of `type` and `name` structures that target an individual pod controller. These are what kuiper will look at to possibly replace. Currently, only deployments are supported.
