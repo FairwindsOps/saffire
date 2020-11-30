@@ -1,8 +1,12 @@
 # POC Design and CRD Organization
 
+## Intended Use
+
+The current intent is that an `alternateImageSource` will be deployed alongside an application. This will specify the possible alternate iamges for that application's pods.
+
 ## CRD
 
-The POC or alpha version of Kuiper has the following CRD Structure for `alternateImageSource`:
+The POC or alpha version of Kuiper has the following CRD Structure for `alternateImageSource` (AIS for short):
 
 ```
 spec:
@@ -35,13 +39,9 @@ These are a list of `type` and `name` structures that target an individual pod c
 
 Eventually, I would like to see the ability to use `labelSelectors` instead of only `name`
 
-## Intended Use
-
-The current intent is that an `alternateImageSource` will be deployed alongside an application. This will specify the possible alternate iamges for that application's pods.
-
 ## How it Works
 
-In the `SetupWithManager` function, we initiate a pod watcher, that receives all status updates for pods that the controller can access. If the pod has a status `ErrImagePull` or `ImagePullBackOff`, then we initiate a reconciliation of the `alternateImageSources` in that namespace.
+In the `SetupWithManager` function, we initiate a pod watcher, that receives all status updates for pods that the controller can access. If the pod has a status `ErrImagePull` or `ImagePullBackOff`, then we initiate a reconciliation of the `alternateImageSources` in that namespace. Deployments also trigger a reconciliation, but I'm not sure that's 100% necessary right now. In addition, we run reconciliation if an AIS is modified or created.
 
 During the reconcilation, the `alternateImageSource` checks each of its targets to see if they need to be `activated`. An `activation` is simply switching to a different image source in the list of `equivalentRepositories`. This is done via a patch to the deployment.
 
