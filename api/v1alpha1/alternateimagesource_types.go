@@ -26,12 +26,8 @@ type Target struct {
 	Name string           `json:"name"`
 	Type metav1.GroupKind `json:"type"`
 	// Container is the container that matches our list
-	Container string `json:"container,omitempty"`
-	// CurrentRepository is the currently selected repository from the list
-	CurrentRepository string `json:"currentRepository,omitempty"`
-	// SwitchStatuses is a list of switch events
-	SwitchStatuses []SwitchStatus `json:"switches,omitempty"`
-	UID            types.UID      `json:"uid,omitempty"`
+	Container string    `json:"container,omitempty"`
+	UID       types.UID `json:"uid,omitempty"`
 }
 
 // ImageSourceReplacement is a single replacement
@@ -39,10 +35,6 @@ type ImageSourceReplacement struct {
 	// EquivalentRepositories is a list of possible replacement repositories
 	// they should each have the same set of tags available
 	EquivalentRepositories []string `json:"equivalentRepositories"`
-
-	// Targets is a list of objects you want to target for
-	// replacement of the image in the event of an ImagePullError
-	Targets []Target `json:"targets"`
 }
 
 // AlternateImageSourceSpec defines the desired state of AlternateImageSource
@@ -55,14 +47,15 @@ type SwitchStatus struct {
 	Time     metav1.Time `json:"time"`
 	OldImage string      `json:"oldImage"`
 	NewImage string      `json:"newImage"`
+	Target   Target      `json:"target"`
 }
 
 // AlternateImageSourceStatus defines the observed state of AlternateImageSource
 type AlternateImageSourceStatus struct {
 	// ObservedGeneration is the last observed generation of the object
 	ObservedGeneration int64 `json:"observedGeneration"`
-	// TargetsAvailable is a list of objects that are available to be switched
-	TargetsAvailable []*Target `json:"targetsAvailable,omitempty"`
+	// Switches is each occurence of an image switch
+	Switches []SwitchStatus `json:"switches,omitempty"`
 }
 
 // +kubebuilder:object:root=true

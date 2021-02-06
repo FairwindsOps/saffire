@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.72.0 // indirect
+	github.com/fairwindsops/controller-utils v0.1.0
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.3.0 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
@@ -15,15 +16,17 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.8.0 // indirect
 	github.com/prometheus/common v0.15.0 // indirect
+	github.com/stretchr/testify v1.6.1
+	github.com/thoas/go-funk v0.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58 // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
-	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4 // indirect
 	k8s.io/apimachinery v0.19.4

@@ -18,35 +18,43 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	"github.com/fairwindsops/controller-utils/pkg/controller"
 	kuiperv1alpha1 "github.com/fairwindsops/kuiper/api/v1alpha1"
 )
 
 // AlternateImageSourceReconciler reconciles a AlternateImageSource object
 type AlternateImageSourceReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	RestMapper    meta.RESTMapper
+	DynamicClient dynamic.Interface
 }
 
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;update;patch;watch;list
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;watch;list
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list
 
 // Reconcile loads and reconciles the AlternateImageSource
 func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -60,67 +68,28 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	}
 
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
+	alternateImageSource.Status.Switches = pruneSwitchStatus(alternateImageSource.Status.Switches)
 
-	var deploymentsInNamespace appsv1.DeploymentList
-	if err := r.List(ctx, &deploymentsInNamespace, client.InNamespace(req.Namespace)); err != nil {
-		log.Error(err, "unable to list target deployments")
-	}
-
-	// Remove any targets that don't have existing deployments
-	alternateImageSource.Status.TargetsAvailable = pruneTargetDeployments(alternateImageSource.Status.TargetsAvailable, deploymentsInNamespace)
-
-	// Update Targets
 	for _, replacement := range alternateImageSource.Spec.ImageSourceReplacements {
-		for _, target := range replacement.Targets {
-			switch strings.ToLower(target.Type.Kind) {
-			//TODO: more types such as statefulset, daemonset
-			case "deployment":
-				for _, deployment := range deploymentsInNamespace.Items {
-					if deployment.ObjectMeta.Name == target.Name {
-						log.Info(fmt.Sprintf("found possible targeted deployment %s", deployment.ObjectMeta.Name))
-						for _, container := range deployment.Spec.Template.Spec.Containers {
-							repo, _, err := parseImageString(container.Image)
-							if err != nil {
-								log.Error(err, fmt.Sprintf("error parsing image for container %s", container.Name))
-								continue
-							}
-							if stringInSlice(repo, replacement.EquivalentRepositories) {
-								log.Info(fmt.Sprintf("found targeted image %s", container.Image))
+		newSwitchStatus, err := r.needsActivation(req.Namespace, replacement.EquivalentRepositories)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		if newSwitchStatus == nil {
+			continue
+		}
 
-								// Look to see if we are already tracking this deployment
-								// if we are, just use that, if not then append it and start
-								// using it
-								var realTarget *kuiperv1alpha1.Target
-								statusExists := false
-								for _, statusTarget := range alternateImageSource.Status.TargetsAvailable {
-									if statusTarget.UID == deployment.UID && container.Name == statusTarget.Container {
-										statusExists = true
-										realTarget = statusTarget
-									}
-								}
-								if !statusExists {
-									realTarget = &kuiperv1alpha1.Target{
-										Name:              deployment.Name,
-										Type:              target.Type,
-										UID:               deployment.UID,
-										Container:         container.Name,
-										CurrentRepository: repo,
-									}
-									alternateImageSource.Status.TargetsAvailable = append(alternateImageSource.Status.TargetsAvailable, realTarget)
-								}
-
-								if r.targetNeedsActivation(realTarget, req.Namespace) {
-									err := r.switchTarget(realTarget, req.Namespace, replacement)
-									if err != nil {
-										log.Error(err, "unable to update target")
-									}
-								}
-							}
-						}
-					}
-				}
+		if alternateImageSource.Status.Switches != nil {
+			if !r.shouldSwitch(alternateImageSource.Status.Switches, *newSwitchStatus) {
+				return ctrl.Result{}, nil
 			}
 		}
+
+		err = r.switchImage(newSwitchStatus, req.Namespace)
+		if err != nil {
+			log.Error(err, "unable to update target")
+		}
+		alternateImageSource.Status.Switches = append(alternateImageSource.Status.Switches, *newSwitchStatus)
 	}
 
 	if err := r.Status().Update(ctx, &alternateImageSource); err != nil {
@@ -129,22 +98,6 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	}
 
 	return ctrl.Result{}, nil
-}
-
-// DeploymentToAlternateImageSource is a handler.ToRequestsFunc to be used to enqueue requests to reconcile deployments
-// When a deployment is updated, this will request a reconciliation all of the AlternateImageSources in the namespace
-// of the deployment that was updated.
-func (r *AlternateImageSourceReconciler) DeploymentToAlternateImageSource(o handler.MapObject) []ctrl.Request {
-	result := []ctrl.Request{}
-	d, ok := o.Object.(*appsv1.Deployment)
-	if !ok {
-		r.Log.Error(errors.Errorf("expected a Deployment but got a %T", o.Object), "failed to get AlternateImageSource for Deployment")
-	}
-	log := r.Log.WithValues("Deployment", d.Name, "Namespace", d.Namespace)
-	log.V(3).Info("reconciling", "deployment")
-	result = r.requestAISInNamespace(d.Namespace)
-
-	return result
 }
 
 // PodToAlternateImageSource is a handler.ToRequestsFunc to be used to enqueue requests to reconcile Pods
@@ -176,29 +129,25 @@ func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) erro
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kuiperv1alpha1.AlternateImageSource{}).
 		Watches(
-			&source.Kind{Type: &appsv1.Deployment{}},
-			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.DeploymentToAlternateImageSource)},
-		).Watches(
-		&source.Kind{Type: &corev1.Pod{}},
-		&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.PodToAlternateImageSource)},
-	).
+			&source.Kind{Type: &corev1.Pod{}},
+			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.PodToAlternateImageSource)},
+		).
 		Complete(r)
 }
 
 func (r *AlternateImageSourceReconciler) podHasImagePullErr(pod *corev1.Pod) bool {
-	log := r.Log.WithValues("Pod", pod.ObjectMeta.Name, "Namespace", pod.ObjectMeta.Namespace)
 	for _, status := range pod.Status.ContainerStatuses {
 		if status.State.Waiting == nil {
 			continue
 		}
 		if status.State.Waiting.Reason == "ErrImagePull" || status.State.Waiting.Reason == "ImagePullBackOff" {
-			log.Info("pod has image pull issues")
 			return true
 		}
 	}
 	return false
 }
 
+// requestAISInNamespace requests reconciliation of any AlternateImageSources in a namespace
 func (r *AlternateImageSourceReconciler) requestAISInNamespace(namespace string) []ctrl.Request {
 	log := r.Log.WithValues("requestAISInNamespace", namespace)
 	alternateImageSourcesInNamespace := kuiperv1alpha1.AlternateImageSourceList{}
@@ -215,109 +164,160 @@ func (r *AlternateImageSourceReconciler) requestAISInNamespace(namespace string)
 	return result
 }
 
-// targetNeedsActivation detects if we need to activate a switch on that target
-func (r *AlternateImageSourceReconciler) targetNeedsActivation(target *kuiperv1alpha1.Target, namespace string) bool {
+// needsActivation finds the first pod and container in a namespace and returns them if they have an equivalent repository
+// and if they have image pull issues. Also returns the new image string
+func (r *AlternateImageSourceReconciler) needsActivation(namespace string, equivalentRepositories []string) (*kuiperv1alpha1.SwitchStatus, error) {
 	log := r.Log.WithValues("needsActivation", namespace)
 	var podsInNamespace corev1.PodList
 	if err := r.List(context.Background(), &podsInNamespace, client.InNamespace(namespace)); err != nil {
-		log.Error(err, "unable to list pods in namespace")
-		return false
+		return nil, err
 	}
 
 	for _, pod := range podsInNamespace.Items {
 		if r.podHasImagePullErr(&pod) {
-			for _, owner := range pod.OwnerReferences {
-				// TODO: more types
-				switch owner.Kind {
-				case "ReplicaSet":
-					rsOwner := r.getReplicaSetOwner(owner, namespace)
-					if rsOwner.Kind == "Deployment" {
-						if rsOwner.Name == target.Name {
-							return true
-						}
+			log.Info("pod has image pull errors - checking for equivalentRepository")
+			for _, container := range pod.Spec.Containers {
+				repositoryName, _, err := parseImageString(container.Image)
+				if err != nil {
+					log.Error(err, "could not parse image string")
+					continue
+				}
+				if funk.ContainsString(equivalentRepositories, repositoryName) {
+					log.Info(fmt.Sprintf("container %s has equivalentRepositories for image %s", container.Name, container.Image))
+					newImageString, err := getNewImage(container.Image, equivalentRepositories)
+					if err != nil {
+						return nil, err
 					}
+
+					controller := r.getPodController(&pod)
+
+					switchStatus := &kuiperv1alpha1.SwitchStatus{
+						Time: v1.Now(),
+						Target: kuiperv1alpha1.Target{
+							Name:      controller.GetName(),
+							Container: container.Name,
+							Type: v1.GroupKind{
+								Kind:  controller.GetKind(),
+								Group: controller.GetAPIVersion(),
+							},
+						},
+						OldImage: container.Image,
+						NewImage: newImageString,
+					}
+
+					return switchStatus, nil
 				}
 			}
 		}
 	}
-	return false
+	return nil, nil
 }
 
-// getReplicaSetOwner finds the owner of a replicaset's owner. We hope this is a deployment
-func (r *AlternateImageSourceReconciler) getReplicaSetOwner(originalOwner v1.OwnerReference, namespace string) v1.OwnerReference {
-	ctx := context.Background()
-	rs := &appsv1.ReplicaSet{}
-	err := r.Get(ctx, client.ObjectKey{Name: originalOwner.Name, Namespace: namespace}, rs)
+// getPodController determines the top-level controller of a pod
+func (r *AlternateImageSourceReconciler) getPodController(pod *corev1.Pod) *unstructured.Unstructured {
+	log := r.Log.WithValues("getPodController", pod.Name)
+
+	cache := make(map[string]unstructured.Unstructured)
+
+	podData, err := json.Marshal(pod)
 	if err != nil {
-		r.Log.Error(err, "could not find replicaset from owner")
-		return v1.OwnerReference{}
-	}
-	if len(rs.OwnerReferences) == 1 {
-		return rs.OwnerReferences[0]
+		log.Error(err, "unable to marshal pod")
+		return nil
 	}
 
-	return v1.OwnerReference{}
+	placeholder := make(map[string]interface{})
+	err = json.Unmarshal(podData, &placeholder)
+	if err != nil {
+		log.Error(err, "could not unmarshal pod")
+		return nil
+	}
+
+	unstructuredPod := unstructured.Unstructured{
+		Object: placeholder,
+	}
+
+	controller, err := controller.GetTopController(context.TODO(), r.DynamicClient, r.RestMapper, unstructuredPod, cache)
+	if err != nil {
+		log.Error(err, "could not get top controller")
+		return nil
+	}
+	log.Info("found controller", "kind", controller.GetKind(), "name", controller.GetName())
+	return &controller
 }
 
-func (r *AlternateImageSourceReconciler) switchTarget(target *kuiperv1alpha1.Target, namespace string, replacement kuiperv1alpha1.ImageSourceReplacement) error {
+// switch image executes the switch for different controller types
+func (r *AlternateImageSourceReconciler) switchImage(switchStatus *kuiperv1alpha1.SwitchStatus, namespace string) error {
 	ctx := context.Background()
-	target.SwitchStatuses = pruneSwitchStatus(target.SwitchStatuses)
-	var newStatus = kuiperv1alpha1.SwitchStatus{
-		Time: v1.Now(),
-	}
-	switch strings.ToLower(target.Type.Kind) {
+
+	switch strings.ToLower(switchStatus.Target.Type.Kind) {
 	case "deployment":
 		deployment := &appsv1.Deployment{}
-		err := r.Get(ctx, client.ObjectKey{Name: target.Name, Namespace: namespace}, deployment)
+		err := r.Get(ctx, client.ObjectKey{Name: switchStatus.Target.Name, Namespace: namespace}, deployment)
 		if err != nil {
 			return err
 		}
 
 		for _, container := range deployment.Spec.Template.Spec.Containers {
-			newStatus.OldImage, _, err = parseImageString(container.Image)
-			if err != nil {
-				r.Log.Error(err, fmt.Sprintf("could not parse conatainer %s", container.Name))
+			if container.Name == switchStatus.Target.Container {
+
+				r.Log.Info("switching", "old", switchStatus.OldImage, "new", switchStatus.NewImage)
+				err = r.updateDeployment(deployment, switchStatus.OldImage, switchStatus.NewImage)
+				if err != nil {
+					r.Log.Error(err, "")
+					continue
+				}
+			}
+		}
+	default:
+		r.Log.Info("controller type not implemented yet", "type", switchStatus.Target.Type.Kind)
+	}
+
+	return nil
+}
+
+// shouldSwitch determines if a switch is possible within time constraints
+// This prevents switching back too fast, or switching too fast in general
+func (r *AlternateImageSourceReconciler) shouldSwitch(oldSwitchStatuses []kuiperv1alpha1.SwitchStatus, newSwitchStatus kuiperv1alpha1.SwitchStatus) bool {
+	//TODO: Implement a backoff instead of a strict time.
+	delaySeconds := 60 * time.Second
+	var latestSwitchStatus kuiperv1alpha1.SwitchStatus
+	now := v1.Now()
+	for idx, switchStatus := range oldSwitchStatuses {
+		if newSwitchStatus.Target.Name != switchStatus.Target.Name {
+			if newSwitchStatus.Target.Type.Kind != switchStatus.Target.Type.Kind {
+				// Not the same target, so we don't need to check it
 				continue
 			}
-			if stringInSlice(newStatus.OldImage, replacement.EquivalentRepositories) {
-				for _, repository := range replacement.EquivalentRepositories {
-					if !strings.Contains(container.Image, repository) {
-						newStatus.NewImage = repository
+		}
+		// Find the latest switch that happened so we can make sure we aren't going too fast
+		if idx == 0 {
+			latestSwitchStatus = switchStatus
+		} else {
+			if latestSwitchStatus.Time.Sub(switchStatus.Time.Time) < 0 {
+				latestSwitchStatus = switchStatus
+			}
+		}
 
-						// TODO: make this check a separate function
-						shouldSwitch := true
-						for _, status := range target.SwitchStatuses {
-							timeSinceSwitch := newStatus.Time.Sub(status.Time.Time)
-							if timeSinceSwitch < time.Second*5 {
-								// we are trying to switch too fast
-								// TODO: implement a backoff
-								r.Log.Info("not switching images in less than 5 seconds")
-								shouldSwitch = false
-							}
-							if newStatus.NewImage == status.OldImage {
-								// we are trying to switch back, maybe there is something wrong?
-								if timeSinceSwitch < time.Minute {
-									// we are trying to switch back in < 1 minute. Definitely seems bad
-									r.Log.Info("detected a switch-back in < 1 minute")
-									shouldSwitch = false
-								}
-							}
-						}
-						if shouldSwitch {
-							r.Log.Info(fmt.Sprintf("switching from %s to %s", newStatus.OldImage, newStatus.NewImage))
-							err = r.updateDeployment(deployment, newStatus.OldImage, newStatus.NewImage)
-							if err != nil {
-								r.Log.Error(err, "")
-								continue
-							}
-							target.SwitchStatuses = append(target.SwitchStatuses, newStatus)
-						}
-					}
+		// We should not switch images back within the delaySeconds time
+		// This may not be necessary. We might just keep it to the delaySeconds
+		// no matter which images we are switching to/from
+		if switchStatus.NewImage == newSwitchStatus.OldImage {
+			if switchStatus.OldImage == newSwitchStatus.NewImage {
+				diff := now.Sub(switchStatus.Time.Time)
+				if diff > delaySeconds {
+					r.Log.Info("switch back detected in too short of a time")
+					return false
 				}
 			}
 		}
 	}
-	return nil
+	// Switch is happening too fast.
+	if now.Sub(latestSwitchStatus.Time.Time) < delaySeconds {
+		r.Log.Info("switch happening too quickly")
+		return false
+	}
+
+	return true
 }
 
 func pruneSwitchStatus(statuses []kuiperv1alpha1.SwitchStatus) []kuiperv1alpha1.SwitchStatus {
@@ -337,25 +337,17 @@ func pruneSwitchStatus(statuses []kuiperv1alpha1.SwitchStatus) []kuiperv1alpha1.
 	return returnList
 }
 
-func pruneTargetDeployments(targets []*kuiperv1alpha1.Target, deployments appsv1.DeploymentList) []*kuiperv1alpha1.Target {
-	prunedList := []*kuiperv1alpha1.Target{}
-	for _, deployment := range deployments.Items {
-		for _, target := range targets {
-			if target.UID == deployment.UID {
-				prunedList = append(prunedList, target)
-			}
-		}
-	}
-	return prunedList
-}
-
-func parseImageString(image string) (string, string, error) {
-	parsed := strings.Split(image, ":")
-	if len(parsed) != 2 {
-		return "", "", fmt.Errorf("could not parse image string: %s", image)
-	}
-	return parsed[0], parsed[1], nil
-}
+// func pruneTargetDeployments(targets []*kuiperv1alpha1.Target, deployments appsv1.DeploymentList) []*kuiperv1alpha1.Target {
+// 	prunedList := []*kuiperv1alpha1.Target{}
+// 	for _, deployment := range deployments.Items {
+// 		for _, target := range targets {
+// 			if target.UID == deployment.UID {
+// 				prunedList = append(prunedList, target)
+// 			}
+// 		}
+// 	}
+// 	return prunedList
+// }
 
 func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Deployment, old string, new string) error {
 	replacedAny := false
@@ -376,13 +368,4 @@ func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Dep
 		}
 	}
 	return nil
-}
-
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if a == b {
-			return true
-		}
-	}
-	return false
 }

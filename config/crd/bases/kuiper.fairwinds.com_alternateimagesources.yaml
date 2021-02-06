@@ -47,68 +47,8 @@ spec:
                       items:
                         type: string
                       type: array
-                    targets:
-                      description: Targets is a list of objects you want to target
-                        for replacement of the image in the event of an ImagePullError
-                      items:
-                        description: Target is a target for image replacement
-                        properties:
-                          container:
-                            description: Container is the container that matches our
-                              list
-                            type: string
-                          currentRepository:
-                            description: CurrentRepository is the currently selected
-                              repository from the list
-                            type: string
-                          name:
-                            type: string
-                          switches:
-                            description: SwitchStatuses is a list of switch events
-                            items:
-                              description: SwitchStatus is a switch event
-                              properties:
-                                newImage:
-                                  type: string
-                                oldImage:
-                                  type: string
-                                time:
-                                  format: date-time
-                                  type: string
-                              required:
-                              - newImage
-                              - oldImage
-                              - time
-                              type: object
-                            type: array
-                          type:
-                            description: GroupKind specifies a Group and a Kind, but
-                              does not force a version.  This is useful for identifying
-                              concepts during lookup stages without having partially
-                              valid types
-                            properties:
-                              group:
-                                type: string
-                              kind:
-                                type: string
-                            required:
-                            - group
-                            - kind
-                            type: object
-                          uid:
-                            description: UID is a type that holds unique ID values,
-                              including UUIDs.  Because we don't ONLY use UUIDs, this
-                              is an alias to string.  Being a type captures intent
-                              and helps make sure that UIDs and names do not get conflated.
-                            type: string
-                        required:
-                        - name
-                        - type
-                        type: object
-                      type: array
                   required:
                   - equivalentRepositories
-                  - targets
                   type: object
                 type: array
             required:
@@ -123,61 +63,56 @@ spec:
                   the object
                 format: int64
                 type: integer
-              targetsAvailable:
-                description: TargetsAvailable is a list of objects that are available
-                  to be switched
+              switches:
+                description: Switches is each occurence of an image switch
                 items:
-                  description: Target is a target for image replacement
+                  description: SwitchStatus is a switch event
                   properties:
-                    container:
-                      description: Container is the container that matches our list
+                    newImage:
                       type: string
-                    currentRepository:
-                      description: CurrentRepository is the currently selected repository
-                        from the list
+                    oldImage:
                       type: string
-                    name:
-                      type: string
-                    switches:
-                      description: SwitchStatuses is a list of switch events
-                      items:
-                        description: SwitchStatus is a switch event
-                        properties:
-                          newImage:
-                            type: string
-                          oldImage:
-                            type: string
-                          time:
-                            format: date-time
-                            type: string
-                        required:
-                        - newImage
-                        - oldImage
-                        - time
-                        type: object
-                      type: array
-                    type:
-                      description: GroupKind specifies a Group and a Kind, but does
-                        not force a version.  This is useful for identifying concepts
-                        during lookup stages without having partially valid types
+                    target:
+                      description: Target is a target for image replacement
                       properties:
-                        group:
+                        container:
+                          description: Container is the container that matches our
+                            list
                           type: string
-                        kind:
+                        name:
+                          type: string
+                        type:
+                          description: GroupKind specifies a Group and a Kind, but
+                            does not force a version.  This is useful for identifying
+                            concepts during lookup stages without having partially
+                            valid types
+                          properties:
+                            group:
+                              type: string
+                            kind:
+                              type: string
+                          required:
+                          - group
+                          - kind
+                          type: object
+                        uid:
+                          description: UID is a type that holds unique ID values,
+                            including UUIDs.  Because we don't ONLY use UUIDs, this
+                            is an alias to string.  Being a type captures intent and
+                            helps make sure that UIDs and names do not get conflated.
                           type: string
                       required:
-                      - group
-                      - kind
+                      - name
+                      - type
                       type: object
-                    uid:
-                      description: UID is a type that holds unique ID values, including
-                        UUIDs.  Because we don't ONLY use UUIDs, this is an alias
-                        to string.  Being a type captures intent and helps make sure
-                        that UIDs and names do not get conflated.
+                    time:
+                      format: date-time
                       type: string
                   required:
-                  - name
-                  - type
+                  - newImage
+                  - oldImage
+                  - target
+                  - time
                   type: object
                 type: array
             required:
