@@ -54,7 +54,7 @@ type AlternateImageSourceReconciler struct {
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;watch;list
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;update
 
 // Reconcile loads and reconciles the AlternateImageSource
 func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
