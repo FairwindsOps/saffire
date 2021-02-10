@@ -337,18 +337,6 @@ func pruneSwitchStatus(statuses []kuiperv1alpha1.SwitchStatus) []kuiperv1alpha1.
 	return returnList
 }
 
-// func pruneTargetDeployments(targets []*kuiperv1alpha1.Target, deployments appsv1.DeploymentList) []*kuiperv1alpha1.Target {
-// 	prunedList := []*kuiperv1alpha1.Target{}
-// 	for _, deployment := range deployments.Items {
-// 		for _, target := range targets {
-// 			if target.UID == deployment.UID {
-// 				prunedList = append(prunedList, target)
-// 			}
-// 		}
-// 	}
-// 	return prunedList
-// }
-
 func (r *AlternateImageSourceReconciler) updateDeployment(deployment *appsv1.Deployment, old string, new string) error {
 	replacedAny := false
 	for idx, container := range deployment.Spec.Template.Spec.Containers {
