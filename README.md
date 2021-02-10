@@ -4,6 +4,10 @@ A controller to override image sources in the event that an image cannot be pull
 
 Built using [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 
+## Alpha Software
+
+At this time, Kuiper is currently in _alpha_. This means that we could change literally anything at any time without notice. Keep an eye out for major changes, and hopefully a v1 release at some point.
+
 ## Why?
 
 The image repository for docker images is a single point of failure for many clusters. As seen in the past with [rate limiting on Docker Hub]() and several high-profile [Quay.io outages](), these images being unavailable can produce disastrous consequences for Kubernetes cluster operators.
@@ -24,17 +28,8 @@ spec:
     - equivalentRepositories:
         - quay.io/fairwinds/docker-demo
         - ehazlett/docker-demo
-      targets:
-        - type:
-            group: apps
-            kind: deployment
-          name: demo3-basic-demo
-        - type:
-            group: apps
-            kind: deployment
-          name: demo2-basic-demo
 ```
 
-This indicates that `quay.io/fairwinds/docker-demo` and `ehazlett/docker-demo` have the exact same image tags in both. In this case, we target two different deployments, `demo3-basic-demo` and `demo2-basic-demo`.
+This indicates that `quay.io/fairwinds/docker-demo` and `ehazlett/docker-demo` have the exact same image tags in both.
 
-Once the controller and this `AlternateImageSource` are installed in your cluster, if either of these two deployments in the targets list experiences an `ImgagePullError`, kuiper will patch the deployment and set the image to use one of the other repositories in the `equivalentRepositories` field.
+Once the controller and this `AlternateImageSource` are installed in your cluster, if any pod experiences an `ImgagePullError` in that namespace and the image matches one of these repositories, kuiper will find the top level controller of that pod and patch it to set the image as one of the other repositories in the `equivalentRepositories` field (currently this only applies to deployments).
