@@ -41,6 +41,9 @@ jobs:
       - setup_remote_docker
       - run: go mod download && go mod verify
       - *install_goreleaser
+      - run:
+          name: docker login
+          command: docker login quay.io -u="${fairwinds_quay_user}" -p="${fairwinds_quay_token}"
       - run: goreleaser
   publish_docs:
     docker:
