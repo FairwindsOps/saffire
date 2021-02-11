@@ -9,14 +9,6 @@ executors:
       - image: circleci/golang:1.15-buster
 
 references:
-  install_goreleaser: &install_goreleaser
-    run:
-      name: Install GoReleaser
-      command: |
-        curl -fsSLo goreleaser.deb https://github.com/goreleaser/goreleaser/releases/download/v0.131.1/goreleaser_amd64.deb
-        echo "640790dcbfa864f26de4c26c2d491f293a64525c8c6641c5bbdec7136b38977e goreleaser.deb" | sha256sum -c -
-        sudo dpkg -i goreleaser.deb
-        rm goreleaser.deb
   e2e_config: &e2e_config
     command_runner_image: quay.io/reactiveops/ci-images:v11-buster
     kind_node_image: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
@@ -33,14 +25,13 @@ jobs:
   release:
     working_directory: /go/src/github.com/fairwindsops/kuiper
     docker:
-      - image: circleci/golang:1.15
+      - image: goreleaser/goreleaser:v0.155.2
         environment:
           GO111MODULE: "on"
     steps:
       - checkout
       - setup_remote_docker
       - run: go mod download && go mod verify
-      - *install_goreleaser
       - run:
           name: docker login
           command: docker login quay.io -u="${fairwinds_quay_user}" -p="${fairwinds_quay_token}"
