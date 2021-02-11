@@ -83,6 +83,7 @@ workflows:
   release:
     jobs:
       - release:
+          context: org-global
           filters:
             branches:
               ignore: /.*/
