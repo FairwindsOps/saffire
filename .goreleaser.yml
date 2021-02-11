@@ -23,4 +23,7 @@ dockers:
     # Path to the Dockerfile (from the project root).
     dockerfile: Dockerfile
     extra_files:
-     - ./
+     - api
+     - controllers
+     - go.mod
+     - go.sum
