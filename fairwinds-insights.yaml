@@ -9,4 +9,9 @@ images:
 
 manifests:
   yaml:
-  - ./config
+  - config/crd/bases/kuiper.fairwinds.com_alternateimagesources.yaml
+  - config/rbac
+  - config/samples
+  - config/webhook/manifests.yaml
+  - config/webhook/service.yaml
+  - config/manager/manager.yaml
