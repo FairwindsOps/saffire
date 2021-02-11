@@ -38,6 +38,7 @@ jobs:
           GO111MODULE: "on"
     steps:
       - checkout
+      - setup_remote_docker
       - run: go mod download && go mod verify
       - *install_goreleaser
       - run: goreleaser
