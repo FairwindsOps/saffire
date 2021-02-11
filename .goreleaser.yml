@@ -22,3 +22,5 @@ dockers:
 
     # Path to the Dockerfile (from the project root).
     dockerfile: Dockerfile
+    extra_files:
+     - /
