@@ -44,7 +44,7 @@ jobs:
       - run:
           name: docker login
           command: docker login quay.io -u="${fairwinds_quay_user}" -p="${fairwinds_quay_token}"
-      - run: goreleaser
+      - run: goreleaser --debug
   publish_docs:
     docker:
       - image: cimg/node:15.5.1
