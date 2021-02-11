@@ -14,22 +14,6 @@ builds:
       - 6
       - 7
 dockers:
-  -
-    image_templates:
-    - "quay.io/fairwinds/kuiper:{{ .Tag }}"
-    - "quay.io/fairwinds/kuiper:v{{ .Major }}"
-    - "quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}"
-
-    # Path to the Dockerfile (from the project root).
-    dockerfile: Dockerfile
-    extra_files:
-     - api
-     - controllers
-     - main.go
-     - go.mod
-     - go.sum
-
-dockers:
 - image_templates:
   - "quay.io/fairwinds/kuiper:{{ .Tag }}-amd64"
   - "quay.io/fairwinds/kuiper:v{{ .Major }}-amd64"
@@ -53,6 +37,12 @@ dockers:
   dockerfile: Dockerfile
   build_flag_templates:
   - "--platform=linux/arm64/v8"
+  extra_files:
+  - api
+  - controllers
+  - main.go
+  - go.mod
+  - go.sum
 docker_manifests:
 - name_template: quay.io/fairwinds/kuiper:{{ .Tag }}
   image_templates:
