@@ -31,7 +31,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 20.10.2
+          version: 17.09.0-ce
       - run:
           name: enable experimental features
           command: |
