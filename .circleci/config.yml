@@ -35,6 +35,7 @@ jobs:
       - run:
           name: enable experimental features
           command: |
+             apk --update add openssh
              ssh remote-docker \<<EOF
                sudo bash -c 'echo "{\"experimental\": true}" > /etc/docker/daemon.json'
                sudo systemctl restart docker
