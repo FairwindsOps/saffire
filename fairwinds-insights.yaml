@@ -10,8 +10,17 @@ images:
 manifests:
   yaml:
   - config/crd/bases/kuiper.fairwinds.com_alternateimagesources.yaml
-  - config/rbac
   - config/samples
   - config/webhook/manifests.yaml
   - config/webhook/service.yaml
   - config/manager/manager.yaml
+  - config/rbac/alternateimagesource_editor_role.yaml
+  - config/rbac/alternateimagesource_viewer_role.yaml
+  - config/rbac/auth_proxy_client_clusterrole.yaml
+  - config/rbac/auth_proxy_role.yaml
+  - config/rbac/auth_proxy_role_binding.yaml
+  - config/rbac/auth_proxy_service.yaml
+  - config/rbac/leader_election_role.yaml
+  - config/rbac/leader_election_role_binding.yaml
+  - config/rbac/role.yaml
+  - config/rbac/role_binding.yaml
