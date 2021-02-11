@@ -25,5 +25,6 @@ dockers:
     extra_files:
      - api
      - controllers
+     - main.go
      - go.mod
      - go.sum
