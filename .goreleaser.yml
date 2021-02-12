@@ -22,12 +22,6 @@ dockers:
   dockerfile: Dockerfile
   build_flag_templates:
   - "--platform=linux/amd64"
-  extra_files:
-  - api
-  - controllers
-  - main.go
-  - go.mod
-  - go.sum
 - image_templates:
   - "quay.io/fairwinds/kuiper:{{ .Tag }}-arm64v8"
   - "quay.io/fairwinds/kuiper:v{{ .Major }}-arm64v8"
@@ -37,12 +31,6 @@ dockers:
   dockerfile: Dockerfile
   build_flag_templates:
   - "--platform=linux/arm64/v8"
-  extra_files:
-  - api
-  - controllers
-  - main.go
-  - go.mod
-  - go.sum
 docker_manifests:
 - name_template: quay.io/fairwinds/kuiper:{{ .Tag }}
   image_templates:
