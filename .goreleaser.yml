@@ -13,6 +13,7 @@ builds:
     goarm:
       - 6
       - 7
+      - 8
 dockers:
 - image_templates:
   - "quay.io/fairwinds/kuiper:{{ .Tag }}-amd64"
