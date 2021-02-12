@@ -31,16 +31,28 @@ dockers:
   dockerfile: Dockerfile
   build_flag_templates:
   - "--platform=linux/arm64/v8"
+- image_templates:
+  - "quay.io/fairwinds/kuiper:{{ .Tag }}-armv7"
+  - "quay.io/fairwinds/kuiper:v{{ .Major }}-armv7"
+  - "quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}-armv7"
+  use_buildx: true
+  goarch: arm64
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - "--platform=linux/arm/v7"
 docker_manifests:
 - name_template: quay.io/fairwinds/kuiper:{{ .Tag }}
   image_templates:
   - "quay.io/fairwinds/kuiper:{{ .Tag }}-amd64"
   - "quay.io/fairwinds/kuiper:{{ .Tag }}-arm64v8"
+  - "quay.io/fairwinds/kuiper:{{ .Tag }}-armv7"
 - name_template: quay.io/fairwinds/kuiper:v{{ .Major }}
   image_templates:
   - "quay.io/fairwinds/kuiper:v{{ .Major }}-amd64"
   - "quay.io/fairwinds/kuiper:v{{ .Major }}-arm64v8"
+  - "quay.io/fairwinds/kuiper:v{{ .Major }}-armv7"
 - name_template: quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}
   image_templates:
   - "quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}-amd64"
   - "quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}-arm64v8"
+  - "quay.io/fairwinds/kuiper:v{{ .Major }}.{{ .Minor }}-armv7"
