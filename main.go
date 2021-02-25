@@ -28,8 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	kuiperv1alpha1 "github.com/fairwindsops/kuiper/api/v1alpha1"
-	"github.com/fairwindsops/kuiper/controllers"
+	saffirev1alpha1 "github.com/fairwindsops/saffire/api/v1alpha1"
+	"github.com/fairwindsops/saffire/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -41,7 +41,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = kuiperv1alpha1.AddToScheme(scheme)
+	_ = saffirev1alpha1.AddToScheme(scheme)
 
 	// +kubebuilder:scaffold:scheme
 }

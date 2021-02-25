@@ -2,4 +2,4 @@
 
 set -e
 
-docker cp ./ e2e-command-runner:/kuiper
+docker cp ./ e2e-command-runner:/saffire

@@ -16,6 +16,6 @@ chmod +x kustomize
 mv kustomize /usr/local/bin/kustomize
 
 # Run tests
-cd /kuiper/
+cd /saffire/
 make all install
 USE_EXISTING_CLUSTER=true make test

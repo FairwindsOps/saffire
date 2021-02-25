@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: alternateimagesources.kuiper.fairwinds.com
+  name: alternateimagesources.saffire.fairwinds.com
 spec:
-  group: kuiper.fairwinds.com
+  group: saffire.fairwinds.com
   names:
     kind: AlternateImageSource
     listKind: AlternateImageSourceList

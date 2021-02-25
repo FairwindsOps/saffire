@@ -6,7 +6,7 @@ The current intent is that an `alternateImageSource` will be deployed alongside 
 
 ## CRD
 
-The POC or alpha version of Kuiper has the following CRD Structure for `alternateImageSource` (AIS for short):
+The POC or alpha version of saffire has the following CRD Structure for `alternateImageSource` (AIS for short):
 
 ```
 spec:
@@ -22,7 +22,7 @@ The `imageSourceReplacements` field contains a list. That list has two fields:
 
 #### equivalentRepositories
 
-These are image repositories (`image` field minus tag) that are equivalent. They are expected to have the same image tags. Upon a switch being activated, Kuiper will loop through these and use the first one that is not currently utilized.
+These are image repositories (`image` field minus tag) that are equivalent. They are expected to have the same image tags. Upon a switch being activated, saffire will loop through these and use the first one that is not currently utilized.
 
 Currently there is no plan to implement a "switch back" functionality. If the end-user desires a switch back, they can re-deploy their manifests with the original image.
 
