@@ -49,6 +49,7 @@ jobs:
       - run:
           name: goreleaser
           command: |
+            set -x
             docker version
             goreleaser --debug
   publish_docs:
