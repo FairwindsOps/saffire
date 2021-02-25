@@ -23,7 +23,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - kuiper.fairwinds.com
+  - saffire.fairwinds.com
   resources:
   - alternateimagesources
   verbs:
@@ -35,7 +35,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - kuiper.fairwinds.com
+  - saffire.fairwinds.com
   resources:
   - alternateimagesources/status
   verbs:

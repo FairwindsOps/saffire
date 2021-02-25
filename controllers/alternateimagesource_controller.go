@@ -39,7 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/fairwindsops/controller-utils/pkg/controller"
-	kuiperv1alpha1 "github.com/fairwindsops/kuiper/api/v1alpha1"
+	saffirev1alpha1 "github.com/fairwindsops/saffire/api/v1alpha1"
 )
 
 // AlternateImageSourceReconciler reconciles a AlternateImageSource object
@@ -51,8 +51,8 @@ type AlternateImageSourceReconciler struct {
 	DynamicClient dynamic.Interface
 }
 
-// +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=kuiper.fairwinds.com,resources=alternateimagesources/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=saffire.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=saffire.fairwinds.com,resources=alternateimagesources/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;watch;list
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;update
 
@@ -61,7 +61,7 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 	ctx := context.Background()
 	log := r.Log.WithValues("alternateimagesource", req.NamespacedName)
 
-	var alternateImageSource kuiperv1alpha1.AlternateImageSource
+	var alternateImageSource saffirev1alpha1.AlternateImageSource
 	if err := r.Get(ctx, req.NamespacedName, &alternateImageSource); err != nil {
 		log.Error(err, "unable to fetch AlternateImageSource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -127,7 +127,7 @@ func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o handler.Map
 // SetupWithManager sets up the reconciler
 func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&kuiperv1alpha1.AlternateImageSource{}).
+		For(&saffirev1alpha1.AlternateImageSource{}).
 		Watches(
 			&source.Kind{Type: &corev1.Pod{}},
 			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.PodToAlternateImageSource)},
@@ -150,7 +150,7 @@ func (r *AlternateImageSourceReconciler) podHasImagePullErr(pod *corev1.Pod) boo
 // requestAISInNamespace requests reconciliation of any AlternateImageSources in a namespace
 func (r *AlternateImageSourceReconciler) requestAISInNamespace(namespace string) []ctrl.Request {
 	log := r.Log.WithValues("requestAISInNamespace", namespace)
-	alternateImageSourcesInNamespace := kuiperv1alpha1.AlternateImageSourceList{}
+	alternateImageSourcesInNamespace := saffirev1alpha1.AlternateImageSourceList{}
 	result := []ctrl.Request{}
 	err := r.List(context.Background(), &alternateImageSourcesInNamespace, client.InNamespace(namespace))
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *AlternateImageSourceReconciler) requestAISInNamespace(namespace string)
 
 // needsActivation finds the first pod and container in a namespace and returns them if they have an equivalent repository
 // and if they have image pull issues. Also returns the new image string
-func (r *AlternateImageSourceReconciler) needsActivation(namespace string, equivalentRepositories []string) (*kuiperv1alpha1.SwitchStatus, error) {
+func (r *AlternateImageSourceReconciler) needsActivation(namespace string, equivalentRepositories []string) (*saffirev1alpha1.SwitchStatus, error) {
 	log := r.Log.WithValues("needsActivation", namespace)
 	var podsInNamespace corev1.PodList
 	if err := r.List(context.Background(), &podsInNamespace, client.InNamespace(namespace)); err != nil {
@@ -191,9 +191,9 @@ func (r *AlternateImageSourceReconciler) needsActivation(namespace string, equiv
 
 					controller := r.getPodController(&pod)
 
-					switchStatus := &kuiperv1alpha1.SwitchStatus{
+					switchStatus := &saffirev1alpha1.SwitchStatus{
 						Time: v1.Now(),
-						Target: kuiperv1alpha1.Target{
+						Target: saffirev1alpha1.Target{
 							Name:      controller.GetName(),
 							Container: container.Name,
 							Type: v1.GroupKind{
@@ -246,7 +246,7 @@ func (r *AlternateImageSourceReconciler) getPodController(pod *corev1.Pod) *unst
 }
 
 // switch image executes the switch for different controller types
-func (r *AlternateImageSourceReconciler) switchImage(switchStatus *kuiperv1alpha1.SwitchStatus, namespace string) error {
+func (r *AlternateImageSourceReconciler) switchImage(switchStatus *saffirev1alpha1.SwitchStatus, namespace string) error {
 	ctx := context.Background()
 
 	switch strings.ToLower(switchStatus.Target.Type.Kind) {
@@ -277,10 +277,10 @@ func (r *AlternateImageSourceReconciler) switchImage(switchStatus *kuiperv1alpha
 
 // shouldSwitch determines if a switch is possible within time constraints
 // This prevents switching back too fast, or switching too fast in general
-func (r *AlternateImageSourceReconciler) shouldSwitch(oldSwitchStatuses []kuiperv1alpha1.SwitchStatus, newSwitchStatus kuiperv1alpha1.SwitchStatus) bool {
+func (r *AlternateImageSourceReconciler) shouldSwitch(oldSwitchStatuses []saffirev1alpha1.SwitchStatus, newSwitchStatus saffirev1alpha1.SwitchStatus) bool {
 	//TODO: Implement a backoff instead of a strict time.
 	delaySeconds := 60 * time.Second
-	var latestSwitchStatus kuiperv1alpha1.SwitchStatus
+	var latestSwitchStatus saffirev1alpha1.SwitchStatus
 	now := v1.Now()
 	for idx, switchStatus := range oldSwitchStatuses {
 		if newSwitchStatus.Target.Name != switchStatus.Target.Name {
@@ -320,9 +320,9 @@ func (r *AlternateImageSourceReconciler) shouldSwitch(oldSwitchStatuses []kuiper
 	return true
 }
 
-func pruneSwitchStatus(statuses []kuiperv1alpha1.SwitchStatus) []kuiperv1alpha1.SwitchStatus {
+func pruneSwitchStatus(statuses []saffirev1alpha1.SwitchStatus) []saffirev1alpha1.SwitchStatus {
 	now := v1.Now()
-	var returnList []kuiperv1alpha1.SwitchStatus
+	var returnList []saffirev1alpha1.SwitchStatus
 	count := 0
 	for _, status := range statuses {
 		age := now.Sub(status.Time.Time)

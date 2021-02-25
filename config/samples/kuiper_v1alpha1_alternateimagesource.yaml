@@ -1,4 +1,4 @@
-apiVersion: kuiper.fairwinds.com/v1alpha1
+apiVersion: saffire.fairwinds.com/v1alpha1
 kind: AlternateImageSource
 metadata:
   name: alternateimagesource-sample

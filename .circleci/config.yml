@@ -23,7 +23,7 @@ references:
 
 jobs:
   release:
-    working_directory: /go/src/github.com/fairwindsops/kuiper
+    working_directory: /go/src/github.com/fairwindsops/saffire
     docker:
       - image: goreleaser/goreleaser:v0.155.2
         environment:
@@ -75,7 +75,7 @@ jobs:
           name: Publish Docs Site to S3
           command: |
             cd ./dist
-            aws s3 sync ./ s3://kuiper.docs.fairwinds.com --delete
+            aws s3 sync ./ s3://saffire.docs.fairwinds.com --delete
 workflows:
   version: 2
   test:

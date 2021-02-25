@@ -1,6 +1,6 @@
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY kuiper .
+COPY saffire .
 USER nonroot:nonroot
 
-ENTRYPOINT ["/kuiper"]
+ENTRYPOINT ["/saffire"]

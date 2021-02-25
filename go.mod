@@ -1,4 +1,4 @@
-module github.com/fairwindsops/kuiper
+module github.com/fairwindsops/saffire
 
 go 1.14
 

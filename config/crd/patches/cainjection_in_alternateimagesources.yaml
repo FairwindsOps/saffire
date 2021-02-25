@@ -5,4 +5,4 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
-  name: alternateimagesources.kuiper.fairwinds.com
+  name: alternateimagesources.saffire.fairwinds.com

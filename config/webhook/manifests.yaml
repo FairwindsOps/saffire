@@ -11,12 +11,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-kuiper-fairwinds-com-v1alpha1-alternateimagesource
+      path: /mutate-saffire-fairwinds-com-v1alpha1-alternateimagesource
   failurePolicy: Fail
   name: malternateimagesource.kb.io
   rules:
   - apiGroups:
-    - kuiper.fairwinds.com
+    - saffire.fairwinds.com
     apiVersions:
     - v1alpha1
     operations:
@@ -37,12 +37,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-kuiper-fairwinds-com-v1alpha1-alternateimagesource
+      path: /validate-saffire-fairwinds-com-v1alpha1-alternateimagesource
   failurePolicy: Fail
   name: valternateimagesource.kb.io
   rules:
   - apiGroups:
-    - kuiper.fairwinds.com
+    - saffire.fairwinds.com
     apiVersions:
     - v1alpha1
     operations:
