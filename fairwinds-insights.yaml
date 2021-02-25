@@ -7,6 +7,9 @@ images:
   docker:
   - quay.io/fairwinds/pluto:$CIRCLE_SHA1
 
+exemptions:
+  - report: trivy
+
 manifests:
   yaml:
   - config/crd/bases/saffire.fairwinds.com_alternateimagesources.yaml
