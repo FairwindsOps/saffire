@@ -8,15 +8,12 @@
     <a href="https://goreportcard.com/report/github.com/FairwindsOps/saffire">
         <img src="https://goreportcard.com/badge/github.com/FairwindsOps/saffire">
     </a>
-    <a href="https://circleci.com/gh/FairwindsOps/saffire.svg">
-        <img src="https://circleci.com/gh/FairwindsOps/saffire.svg?style=svg">
-    </a>
-    <a href="https://codecov.io/gh/FairwindsOps/saffire">
-        <img src="https://codecov.io/gh/FairwindsOps/saffire/branch/master/graph/badge.svg">
+    <a href="https://insights.fairwinds.com/gh/FairwindsOps/polaris">
+      <img src="https://insights.fairwinds.com/v0/gh/FairwindsOps/polaris/badge.svg">
     </a>
 </div>
 
-A controller to override image sources in the event that an image cannot be pulled.
+A controller to override image sources in the eventthat an image cannot be pulled.
 
 Built using [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 
