@@ -1,4 +1,20 @@
-# saffire
+<div align="center" class="no-border">
+    <img src="/img/saffire.png" height="150" alt="Saffire" style="padding-bottom: 20px" />
+    <br>
+    <h3>Get your resource requests "Just Right"</h3>
+    <a href="https://github.com/FairwindsOps/saffire/releases">
+        <img src="https://img.shields.io/github/v/release/FairwindsOps/saffire">
+    </a>
+    <a href="https://goreportcard.com/report/github.com/FairwindsOps/saffire">
+        <img src="https://goreportcard.com/badge/github.com/FairwindsOps/saffire">
+    </a>
+    <a href="https://circleci.com/gh/FairwindsOps/saffire.svg">
+        <img src="https://circleci.com/gh/FairwindsOps/saffire.svg?style=svg">
+    </a>
+    <a href="https://codecov.io/gh/FairwindsOps/saffire">
+        <img src="https://codecov.io/gh/FairwindsOps/saffire/branch/master/graph/badge.svg">
+    </a>
+</div>
 
 A controller to override image sources in the event that an image cannot be pulled.
 
