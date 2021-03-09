@@ -1,7 +1,6 @@
 <div align="center" class="no-border">
     <img src="/img/saffire.png" height="150" alt="Saffire" style="padding-bottom: 20px" />
     <br>
-    <h3>Get your resource requests "Just Right"</h3>
     <a href="https://github.com/FairwindsOps/saffire/releases">
         <img src="https://img.shields.io/github/v/release/FairwindsOps/saffire">
     </a>
