@@ -11,17 +11,20 @@
       <img src="https://insights.fairwinds.com/v0/gh/FairwindsOps/polaris/badge.svg">
     </a>
     <a href="https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g">
-      <img src="https://img.shields.io/badge/Slack-Join%20Our%20Community-orange">
+      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=4a154b&logo=slack">
     </a>
 </div>
 
 A controller to override image sources in the eventthat an image cannot be pulled.
+
+**Want to learn more?** Reach out on [the Slack channel](https://fairwindscommunity.slack.com/messages/saffire) ([request invite](https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g)), send an email to `opensource@fairwinds.com`, or join us     for [office hours on Zoom](https://fairwindscommunity.slack.com/messages/office-hours)
 
 Built using [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 
 ## Alpha Software
 
 At this time, saffire is currently in _alpha_. This means that we could change literally anything at any time without notice. Keep an eye out for major changes, and hopefully a v1 release at some point.
+
 
 ## Why?
 
