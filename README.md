@@ -11,7 +11,7 @@
       <img src="https://insights.fairwinds.com/v0/gh/FairwindsOps/polaris/badge.svg">
     </a>
     <a href="https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g">
-      <img src="https://img.shields.io/badge/Slack-Join%20Our%20Community-orange">
+      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=%3CCOLOR%3E&logo=slack">
     </a>
 </div>
 
