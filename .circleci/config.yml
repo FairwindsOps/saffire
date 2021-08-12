@@ -11,7 +11,6 @@ executors:
 references:
   e2e_config: &e2e_config
     command_runner_image: quay.io/reactiveops/ci-images:v11-buster
-    kind_node_image: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
     executor: golang-exec
     pre_script: .circleci/pre.sh
     script: .circleci/test.sh
