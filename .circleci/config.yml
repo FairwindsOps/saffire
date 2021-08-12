@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  rok8s: fairwinds/rok8s-scripts@dev:sudermanjr/open-permissions-on-kind-config
+  rok8s: fairwinds/rok8s-scripts@11
 
 executors:
   golang-exec:
@@ -44,6 +44,7 @@ jobs:
           version: 20.10.6
       - *enable_experimental_docker_features
       - run: go mod download && go mod verify
+      - run: apk add vault
       - rok8s/get_vault_env:
           vault_path: repo/global/env
       - rok8s/docker_login:
@@ -69,6 +70,7 @@ jobs:
           version: 20.10.6
       - *enable_experimental_docker_features
       - run: go mod download && go mod verify
+      - run: apk add vault
       - rok8s/get_vault_env:
           vault_path: repo/global/env
       - rok8s/docker_login:
