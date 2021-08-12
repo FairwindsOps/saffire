@@ -19,6 +19,16 @@ references:
         only: /.*/
       tags:
         ignore: /.*/
+  enable_experimental_features: &enable_experimental_docker_features
+    run:
+      name: enable experimental features
+      command: |
+        set -ex
+        apk --update add openssh
+        ssh remote-docker \<<EOF
+          sudo bash -c 'echo "{\"experimental\": true}" > /etc/docker/daemon.json'
+          sudo systemctl restart docker
+        EOF
 
 jobs:
   release:
@@ -32,15 +42,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 20.10.6
-      - run:
-          name: enable experimental features
-          command: |
-            set -ex
-            apk --update add openssh
-            ssh remote-docker \<<EOF
-              sudo bash -c 'echo "{\"experimental\": true}" > /etc/docker/daemon.json'
-              sudo systemctl restart docker
-            EOF
+      - *enable_experimental_docker_features
       - run: go mod download && go mod verify
       - rok8s/get_vault_env:
           vault_path: repo/global/env
@@ -65,15 +67,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 20.10.6
-      - run:
-          name: enable experimental features
-          command: |
-            set -ex
-            apk --update add openssh
-            ssh remote-docker \<<EOF
-              sudo bash -c 'echo "{\"experimental\": true}" > /etc/docker/daemon.json'
-              sudo systemctl restart docker
-            EOF
+      - *enable_experimental_docker_features
       - run: go mod download && go mod verify
       - rok8s/get_vault_env:
           vault_path: repo/global/env
