@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  rok8s-scripts: fairwinds/rok8s-scripts@11
+  rok8s-scripts: fairwinds/rok8s-scripts@sudermanjr/open-permissions-on-kind-config
 
 executors:
   golang-exec:
@@ -25,7 +25,7 @@ jobs:
   release:
     working_directory: /go/src/github.com/fairwindsops/saffire
     docker:
-      - image: goreleaser/goreleaser:v0.155.2
+      - image: goreleaser/goreleaser:v0.174.2
         environment:
           GO111MODULE: "on"
     resource_class: large
