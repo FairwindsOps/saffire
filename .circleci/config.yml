@@ -42,10 +42,12 @@ jobs:
               sudo systemctl restart docker
             EOF
       - run: go mod download && go mod verify
-      - run:
-          name: docker login
-          command: |
-            docker login quay.io -u="${fairwinds_quay_user}" -p="${fairwinds_quay_token}"
+      - rok8s/get_vault_env:
+          vault_path: repo/global/env
+      - rok8s/docker_login:
+          registry: "quay.io"
+          username: $FAIRWINDS_QUAY_USER
+          password-variable: FAIRWINDS_QUAY_TOKEN
       - run:
           name: goreleaser
           command: |
