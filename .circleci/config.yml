@@ -28,10 +28,11 @@ jobs:
       - image: goreleaser/goreleaser:v0.155.2
         environment:
           GO111MODULE: "on"
+    resource_class: large
     steps:
       - checkout
       - setup_remote_docker:
-          version: 20.10.2
+          version: 20.10.6
       - run:
           name: enable experimental features
           command: |
