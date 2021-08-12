@@ -3,9 +3,9 @@
 set -ex
 
 # Install Go
-curl -LO https://golang.org/dl/go1.15.8.linux-amd64.tar.gz
+curl -LO https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
 
-tar -C /usr/local -xzf go1.15.8.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 go version
 
