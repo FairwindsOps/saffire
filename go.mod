@@ -17,7 +17,7 @@ require (
 	github.com/prometheus/client_golang v1.8.0 // indirect
 	github.com/prometheus/common v0.15.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	github.com/thoas/go-funk v0.7.0
+	github.com/thoas/go-funk v0.9.1
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
@@ -26,7 +26,6 @@ require (
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4 // indirect
 	k8s.io/apimachinery v0.19.4
