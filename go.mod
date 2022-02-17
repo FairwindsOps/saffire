@@ -5,7 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go v0.72.0 // indirect
 	github.com/fairwindsops/controller-utils v0.1.0
-	github.com/go-logr/logr v0.3.0
+	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v0.3.0 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -26,7 +26,6 @@ require (
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.1.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4 // indirect
 	k8s.io/apimachinery v0.19.4
