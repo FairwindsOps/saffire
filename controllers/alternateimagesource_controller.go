@@ -36,6 +36,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/fairwindsops/controller-utils/pkg/controller"
@@ -57,14 +58,14 @@ type AlternateImageSourceReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;update
 
 // Reconcile loads and reconciles the AlternateImageSource
-func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *AlternateImageSourceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+	ctx = context.Background()
 	log := r.Log.WithValues("alternateimagesource", req.NamespacedName)
 
 	var alternateImageSource saffirev1alpha1.AlternateImageSource
 	if err := r.Get(ctx, req.NamespacedName, &alternateImageSource); err != nil {
 		log.Error(err, "unable to fetch AlternateImageSource")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return reconcile.Result{}, client.IgnoreNotFound(err)
 	}
 
 	alternateImageSource.Status.ObservedGeneration = alternateImageSource.ObjectMeta.Generation
@@ -102,13 +103,13 @@ func (r *AlternateImageSourceReconciler) Reconcile(req ctrl.Request) (ctrl.Resul
 
 // PodToAlternateImageSource is a handler.ToRequestsFunc to be used to enqueue requests to reconcile Pods
 // When a pod has an imagePullErr, this will request a reconciliation
-func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o handler.MapObject) []ctrl.Request {
+func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o client.Object) []ctrl.Request {
 	result := []ctrl.Request{}
 	ctx := context.Background()
 
-	p, ok := o.Object.(*corev1.Pod)
+	p, ok := o.(*corev1.Pod)
 	if !ok {
-		r.Log.Error(errors.Errorf("expected a Pod but got a %T", o.Object), "failed to get AlternateImageSource for Pod")
+		r.Log.Error(errors.Errorf("expected a Pod but got a %T", o.(client.Object)), "failed to get AlternateImageSource for Pod")
 	}
 
 	pod := &corev1.Pod{}
@@ -130,7 +131,7 @@ func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) erro
 		For(&saffirev1alpha1.AlternateImageSource{}).
 		Watches(
 			&source.Kind{Type: &corev1.Pod{}},
-			&handler.EnqueueRequestsFromMapFunc{ToRequests: handler.ToRequestsFunc(r.PodToAlternateImageSource)},
+			handler.EnqueueRequestsFromMapFunc(r.PodToAlternateImageSource),
 		).
 		Complete(r)
 }
