@@ -46,10 +46,15 @@ import (
 // AlternateImageSourceReconciler reconciles a AlternateImageSource object
 type AlternateImageSourceReconciler struct {
 	client.Client
-	Log           logr.Logger
-	Scheme        *runtime.Scheme
-	RestMapper    meta.RESTMapper
-	DynamicClient dynamic.Interface
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	RestMapper       meta.RESTMapper
+	DynamicClient    dynamic.Interface
+	ControllerClient controller.Client
+}
+
+type ControllerUtilsClientInstance struct {
+	Client controller.Client
 }
 
 // +kubebuilder:rbac:groups=saffire.fairwinds.com,resources=alternateimagesources,verbs=get;list;watch;create;update;patch;delete
@@ -59,7 +64,6 @@ type AlternateImageSourceReconciler struct {
 
 // Reconcile loads and reconciles the AlternateImageSource
 func (r *AlternateImageSourceReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	ctx = context.Background()
 	log := r.Log.WithValues("alternateimagesource", req.NamespacedName)
 
 	var alternateImageSource saffirev1alpha1.AlternateImageSource
@@ -109,7 +113,7 @@ func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o client.Obje
 
 	p, ok := o.(*corev1.Pod)
 	if !ok {
-		r.Log.Error(errors.Errorf("expected a Pod but got a %T", o.(client.Object)), "failed to get AlternateImageSource for Pod")
+		r.Log.Error(errors.Errorf("expected a Pod but got a %T", o.GetObjectKind()), "failed to get AlternateImageSource for Pod")
 	}
 
 	pod := &corev1.Pod{}
@@ -237,7 +241,7 @@ func (r *AlternateImageSourceReconciler) getPodController(pod *corev1.Pod) *unst
 		Object: placeholder,
 	}
 
-	controller, err := controller.GetTopController(context.TODO(), r.DynamicClient, r.RestMapper, unstructuredPod, cache)
+	controller, err := r.ControllerClient.GetTopController(unstructuredPod, cache)
 	if err != nil {
 		log.Error(err, "could not get top controller")
 		return nil
