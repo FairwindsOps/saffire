@@ -3,15 +3,9 @@ version: 2.1
 orbs:
   rok8s: fairwinds/rok8s-scripts@11
 
-executors:
-  golang-exec:
-    docker:
-      - image: circleci/golang:1.16-buster
-
 references:
   e2e_config: &e2e_config
-    command_runner_image: quay.io/reactiveops/ci-images:v11-buster
-    executor: golang-exec
+    command_runner_image: quay.io/reactiveops/ci-images:v11-stretch
     pre_script: .circleci/pre.sh
     script: .circleci/test.sh
     filters:
@@ -31,14 +25,11 @@ jobs:
   release:
     working_directory: /go/src/github.com/fairwindsops/saffire
     docker:
-      - image: goreleaser/goreleaser:v0.174.2
-        environment:
-          GO111MODULE: "on"
+      - image: goreleaser/goreleaser:v1.12.3
     resource_class: large
     steps:
       - checkout
       - setup_remote_docker
-      - run: go mod download && go mod verify
       - *install_vault
       - rok8s/get_vault_env:
           vault_path: repo/global/env
@@ -46,18 +37,11 @@ jobs:
           registry: "quay.io"
           username: $FAIRWINDS_QUAY_USER
           password-variable: FAIRWINDS_QUAY_TOKEN
-      - run:
-          name: goreleaser
-          command: |
-            set -x
-            docker version
-            goreleaser --debug
+      - run: goreleaser
   snapshot:
     working_directory: /go/src/github.com/fairwindsops/saffire
     docker:
-      - image: goreleaser/goreleaser:v0.174.2
-        environment:
-          GO111MODULE: "on"
+      - image: goreleaser/goreleaser:v1.12.3
     resource_class: large
     steps:
       - checkout
