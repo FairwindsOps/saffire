@@ -46,7 +46,7 @@ func TestAPIs(t *testing.T) {
 	ginkgo.RunSpecs(t, "Controller Suite")
 }
 
-var _ = ginkgo.BeforeSuite(func(done ginkgo.Done) {
+var _ = ginkgo.BeforeSuite(func(ctx ginkgo.SpecContext) {
 	logger := zap.New(zap.WriteTo(ginkgo.GinkgoWriter))
 	logf.SetLogger(logger)
 
@@ -69,8 +69,7 @@ var _ = ginkgo.BeforeSuite(func(done ginkgo.Done) {
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	gomega.Expect(k8sClient).ToNot(gomega.BeNil())
 
-	close(done)
-}, 60)
+}, ginkgo.NodeTimeout(60))
 
 var _ = ginkgo.AfterSuite(func() {
 	ginkgo.By("tearing down the test environment")
