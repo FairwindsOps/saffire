@@ -59,7 +59,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: go releaser --snapshot --skip-sign
+      - run: goreleaser --snapshot --skip-sign
       - store_artifacts:
           path: dist
           destination: snapshot
