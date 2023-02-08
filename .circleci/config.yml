@@ -6,7 +6,7 @@ orbs:
 
 references:
   e2e_config: &e2e_config
-    command_runner_image: quay.io/reactiveops/ci-images:v11-buster
+    command_runner_image: quay.io/reactiveops/ci-images:v11.13-alpine
     pre_script: .circleci/pre.sh
     script: .circleci/test.sh
     filters:
