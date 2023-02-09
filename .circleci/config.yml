@@ -18,10 +18,11 @@ references:
     run:
       name: install hashicorp vault
       command: |
+        apk --update add yq
+        cd /tmp
         curl -LO https://releases.hashicorp.com/vault/1.12.2/vault_1.12.2_linux_amd64.zip
         unzip vault_1.12.2_linux_amd64.zip
         mv vault /usr/bin/vault
-        apk --update add yq
 jobs:
   test:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/pluto
