@@ -1,3 +1,6 @@
+before:
+  hooks:
+    - go mod tidy
 builds:
   - ldflags:
       - -X main.version={{.Version}} -X main.commit={{.Commit}} -s -w
