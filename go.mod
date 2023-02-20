@@ -13,8 +13,8 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/ginkgo/v2 v2.7.0
-	github.com/onsi/gomega v1.25.0
+	github.com/onsi/ginkgo/v2 v2.8.1
+	github.com/onsi/gomega v1.27.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
