@@ -27,7 +27,7 @@ jobs:
   test:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/pluto
     docker:
-      - image: cimg/go:1.19
+      - image: cimg/go:1.24
     steps:
       - checkout
       - run: go mod download && go mod verify
