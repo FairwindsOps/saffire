@@ -2,8 +2,6 @@ module github.com/fairwindsops/saffire
 
 go 1.24
 
-toolchain go1.24.3
-
 require (
 	github.com/fairwindsops/controller-utils v0.3.4
 	github.com/go-logr/logr v1.4.2
