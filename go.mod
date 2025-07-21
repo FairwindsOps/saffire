@@ -7,7 +7,7 @@ require (
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/fairwindsops/controller-utils v0.3.0
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.4.3
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
