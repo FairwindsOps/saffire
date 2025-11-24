@@ -18,7 +18,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.11.1
 	github.com/thoas/go-funk v0.9.3
 	golang.org/x/oauth2 v0.4.0 // indirect
 	k8s.io/api v0.26.0
