@@ -35,7 +35,7 @@ jobs:
   release:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/saffire
     docker:
-      - image: goreleaser/goreleaser:v1.14.1
+      - image: goreleaser/goreleaser:v2.15.4
         environment:
           GO111MODULE: "on"
     resource_class: large
@@ -55,12 +55,12 @@ jobs:
   snapshot:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/saffire
     docker:
-      - image: goreleaser/goreleaser:v1.14.1
+      - image: goreleaser/goreleaser:v2.15.4
     resource_class: large
     steps:
       - checkout
       - setup_remote_docker
-      - run: goreleaser --snapshot --skip-sign
+      - run: goreleaser --snapshot --skip=sign
       - store_artifacts:
           path: dist
           destination: snapshot
