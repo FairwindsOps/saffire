@@ -51,3 +51,41 @@ spec:
 This indicates that `quay.io/fairwinds/docker-demo` and `ehazlett/docker-demo` have the exact same image tags in both.
 
 Once the controller and this `AlternateImageSource` are installed in your cluster, if any pod experiences an `ImgagePullError` in that namespace and the image matches one of these repositories, saffire will find the top level controller of that pod and patch it to set the image as one of the other repositories in the `equivalentRepositories` field (currently this only applies to deployments).
+
+## Notice: Registry Migration and Immutable Images (v0.0.29 → v0.1.0)
+
+Starting with **v0.1.0**:
+
+- Images moved to `us-docker.pkg.dev/fairwinds-ops/oss/saffire`
+- `quay.io/fairwinds/saffire` is deprecated
+
+### Required action
+
+```diff
+- quay.io/fairwinds/saffire:<tag>
++ us-docker.pkg.dev/fairwinds-ops/oss/saffire:<tag>
+```
+
+---
+
+## Immutable and signed images
+
+* Images are now **signed**
+* Tags are **immutable**
+* No more floating tags:
+
+  * `v0`
+  * `v0.0`
+  * `latest`
+
+Use full version tags:
+
+```
+us-docker.pkg.dev/fairwinds-ops/oss/saffire:v<major>.<minor>.<patch>
+```
+
+Or pin by digest:
+
+```
+us-docker.pkg.dev/fairwinds-ops/oss/saffire@sha256:<digest>
+```
