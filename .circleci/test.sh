@@ -2,6 +2,8 @@
 
 set -ex
 
+mkdir -p /tmp/test-results
+
 # Install Go
 curl -LO https://go.dev/dl/go1.19.5.linux-amd64.tar.gz
 
