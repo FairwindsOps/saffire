@@ -27,7 +27,7 @@ references:
     executor: golang-exec
     pre_script: .circleci/pre.sh
     script: .circleci/test.sh
-    command_runner_image: quay.io/reactiveops/ci-images:v14.1-bullseye
+    command_runner_image: quay.io/reactiveops/ci-images:v17.0-cimg-24.04
     enable_docker_layer_caching: true
     store-test-results: /tmp/test-results
     requires:
