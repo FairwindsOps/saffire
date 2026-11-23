@@ -5,9 +5,9 @@ set -ex
 mkdir -p /tmp/test-results
 
 # Install Go
-curl -LO https://go.dev/dl/go1.19.5.linux-amd64.tar.gz
+curl -LO https://go.dev/dl/go1.27.4.linux-amd64.tar.gz
 
-tar -C /usr/local -xzf go1.19.5.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.27.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 go version
 

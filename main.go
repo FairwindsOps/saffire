@@ -25,8 +25,8 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	saffirev1alpha1 "github.com/fairwindsops/saffire/api/v1alpha1"
 	"github.com/fairwindsops/saffire/controllers"
@@ -59,26 +59,21 @@ func main() {
 
 	cfg := ctrl.GetConfigOrDie()
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
-		Port:               9443,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "4dfa7ea8.fairwinds.com",
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
+		LeaderElection:   enableLeaderElection,
+		LeaderElectionID: "4dfa7ea8.fairwinds.com",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
-	if err != nil {
-		setupLog.Error(err, "unable to get RESTMapper")
-		os.Exit(1)
-	}
-
 	if err = (&controllers.AlternateImageSourceReconciler{
 		Client:        mgr.GetClient(),
-		RestMapper:    mapper,
+		RestMapper:    mgr.GetRESTMapper(),
 		DynamicClient: dynamic.NewForConfigOrDie(cfg),
 		Log:           ctrl.Log.WithName("controllers").WithName("AlternateImageSource"),
 		Scheme:        mgr.GetScheme(),
