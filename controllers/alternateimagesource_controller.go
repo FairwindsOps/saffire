@@ -37,7 +37,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/fairwindsops/controller-utils/pkg/controller"
 	saffirev1alpha1 "github.com/fairwindsops/saffire/api/v1alpha1"
@@ -105,11 +104,10 @@ func (r *AlternateImageSourceReconciler) Reconcile(ctx context.Context, req reco
 	return ctrl.Result{}, nil
 }
 
-// PodToAlternateImageSource is a handler.ToRequestsFunc to be used to enqueue requests to reconcile Pods
+// PodToAlternateImageSource is a handler.MapFunc to be used to enqueue requests to reconcile Pods
 // When a pod has an imagePullErr, this will request a reconciliation
-func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(o client.Object) []ctrl.Request {
+func (r *AlternateImageSourceReconciler) PodToAlternateImageSource(ctx context.Context, o client.Object) []ctrl.Request {
 	result := []ctrl.Request{}
-	ctx := context.Background()
 
 	p, ok := o.(*corev1.Pod)
 	if !ok {
@@ -134,7 +132,7 @@ func (r *AlternateImageSourceReconciler) SetupWithManager(mgr ctrl.Manager) erro
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&saffirev1alpha1.AlternateImageSource{}).
 		Watches(
-			&source.Kind{Type: &corev1.Pod{}},
+			&corev1.Pod{},
 			handler.EnqueueRequestsFromMapFunc(r.PodToAlternateImageSource),
 		).
 		Complete(r)
